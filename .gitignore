@@ -1,0 +1,34 @@
+# Biến môi trường thật – KHÔNG commit (chỉ commit .env.example)
+.env
+.env.*
+!.env.example
+
+# Phụ thuộc và kết quả build
+node_modules/
+dist/
+build/
+target/
+out/
+*.class
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Log, dữ liệu tạm
+*.log
+logs/
+tmp/
+coverage/
+
+# IDE và hệ điều hành
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# File tạm của draw.io và Office
+*.drawio.bkp
+*.drawio.dtmp
+~$*
