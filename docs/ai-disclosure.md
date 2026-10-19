@@ -14,6 +14,6 @@
 
 **Cam kết.** Tôi xác nhận đã đọc, hiểu và chịu trách nhiệm về toàn bộ nội dung nộp. Các phần có sử dụng AI đã được khai báo đầy đủ ở bảng trên và đã được tôi kiểm chứng lại.
 
-**Họ tên:** `<Họ tên>` · **MSSV:** `<MSSV>` · **Lớp:** `<Lớp>` · **Ngày:** `<dd/mm/2026>`
+**Họ tên:** `MINGBOUPPHA XAYKHAM` · **MSSV:** `237480201IS11` · **Lớp:** `261_71ITGR40203_03` · **Ngày:** `19/10/2026>`
 
 **Link GitHub repo (file `.drawio` gốc, `schema.sql`, `srs.md`):** https://github.com/Tolexengnaa/237480201is11-warranty-app

@@ -146,3 +146,70 @@ Tài khoản mẫu (mật khẩu chung `Matkhau@123`, chỉ dùng ở máy phát
 |---|---|---|
 | 1.0 | `<09/10/2026>` | Nộp Bài tập 1 – Phân tích và Thiết kế |
 | 1.1 | 19/10/2026 | Buổi 8 – Sprint 1: khung mã nguồn, migration, CRUD phiếu bảo hành |
+
+# Nhật ký thay đổi thiết kế
+
+Luồng L2 – Tiếp nhận và phân loại yêu cầu bảo hành · Track SE
+
+> File này được đọc lại khi chấm BT2 và BT3 (tiêu chí 3: Nhất quán & Tích lũy).
+> Mỗi điểm góp ý có đủ bốn dòng: **phản hồi → quyết định → lý do → ảnh hưởng**.
+> Khi nhận phản hồi BT2, nối tiếp vào cuối file.
+
+---
+
+## Sau phản hồi Bài tập 1 (buổi 8, ngày 19/10/2026)
+
+Điểm BT1: **7.5/10** – Đầy đủ 6.5 · Kỹ thuật 8.5 · Nhất quán 8 · Trình bày 5. Bốn điểm cần khắc phục, cả bốn đều SỬA.
+
+### TD-01 Ghi link GitHub ở trang bìa và cuối bài
+
+- **Phản hồi của GV:** Bài không có link GitHub ở trang bìa và cuối bài nên thầy không kiểm được các file `.drawio` gốc.
+- **Quyết định:** SỬA
+- **Lý do:** Tiêu chí 3 (Nhất quán & Tích lũy) chấm trên repo; không có link thì mọi file gốc (`.drawio`, `schema.sql`, `srs.md`) không được tính. Bản Markdown `docs/srs.md` đã có link nhưng bản PDF nộp bị sót khi xuất.
+- **Ảnh hưởng:** Thêm link repo ở đầu `README.md`. Kiểm tra link ở trang bìa và cuối bài trong `docs/srs.md`. Từ BT2: mở file PDF đã xuất để kiểm link trước khi nộp.
+
+### TD-02 Hoàn thiện phụ lục khai báo AI
+
+- **Phản hồi của GV:** Cột "Em đã chỉnh sửa / kiểm chứng gì" còn chữ mẫu; chưa có dòng cam kết với họ tên, MSSV, ngày; bảng nhắc đặc tả UC03 nhưng bài chỉ đặc tả UC01.
+- **Quyết định:** SỬA
+- **Lý do:** Phụ lục AI là phần bắt buộc của đề; chữ mẫu còn sót cho thấy chưa kiểm chứng thật, và dòng nhắc UC03 mâu thuẫn với nội dung bài (chỉ có đặc tả UC01).
+- **Ảnh hưởng:** `docs/srs.md` phụ lục và `docs/ai-disclosure.md`: thay chữ mẫu bằng nội dung đã kiểm chứng; điền họ tên, MSSV, lớp, ngày dưới dòng cam kết; bảng chỉ còn nhắc đặc tả UC01. Thêm dòng khai báo AI cho Sprint 1 (buổi 8) vào `ai-disclosure.md`.
+
+### TD-03 Điền nguồn BR1, BR3, BR4 và sửa trang bìa
+
+- **Phản hồi của GV:** Cột Nguồn của BR1, BR3, BR4 vẫn là chữ mẫu `<Bảng 9.1 – đối chiếu>`; trang bìa còn ký tự định dạng thừa ở dòng Track và chưa ghi lớp.
+- **Quyết định:** SỬA
+- **Lý do:** Cột Nguồn phân biệt quy tắc lấy từ case study (BR1, BR3, BR4 – Bảng 9.1) với quy tắc do em phân tích (BR2, BR5, BR6); để chữ mẫu thì không truy vết được. Ký tự thừa trên bìa đến từ dấu `` ` `` của Markdown khi xuất PDF.
+- **Ảnh hưởng:** `docs/srs.md` mục 1.5 (cột Nguồn) và trang bìa: bỏ dấu `` ` ``, thêm dòng **Lớp: 261_71ITGR40203_03**, bỏ ngoặc nhọn ở ngày nộp.
+
+### TD-04 Viết test cho BR2
+
+- **Phản hồi của GV (gợi ý BT2):** Viết test cho BR2 – một IMEI chỉ có một phiếu chưa đóng.
+- **Quyết định:** SỬA
+- **Lý do:** BR2 được bảo vệ ở hai tầng – TicketService kiểm tra trước khi ghi và CSDL có UNIQUE một phần `ux_ticket_open_device` – nên cần test cho cả hai, cộng ca phiếu cũ đã đóng thì được tạo phiếu mới.
+- **Ảnh hưởng:** Thêm `tests/br2.db.test.js` (3 ca, chạy với CSDL thật: `npm run test:db`); unit test có sẵn đổi tên thành `tests/ticketService.unit.test.js` (`npm test`). Không đổi ERD hay mã nghiệp vụ.
+
+---
+
+## Quyết định kỹ thuật khi hiện thực Sprint 1 (buổi 8)
+
+### TD-05 Chốt công nghệ hiện thực: Node.js 22 + Express 4 + PostgreSQL 16
+
+- **Bối cảnh:** README mục 3 ở BT1 ghi *"Sẽ cập nhật ở Bài tập 2"*; BT1 chỉ chốt ứng dụng web nguyên khối 4 lớp, REST/JSON, PostgreSQL 16.
+- **Quyết định:** Dùng Node.js 22 LTS, Express 4, thư viện `pg` (connection pool, SQL tham số hoá), `jsonwebtoken` cho token đăng nhập, `bcryptjs` để băm mật khẩu.
+- **Lý do:** Không dùng ORM để giữ đúng sơ đồ kiến trúc: lớp Repository viết SQL tham số hoá, lọc và phân trang ngay trong CSDL (NFR1). Express đủ nhẹ để ánh xạ một–một Controller → Service → Repository.
+- **Ảnh hưởng:** README mục 2 và mục 4; `package.json`. Không đổi ERD hay API contract.
+
+### TD-06 Migration dùng `IF NOT EXISTS`, giữ nguyên `db/schema.sql`
+
+- **Bối cảnh:** `db/schema.sql` của BT1 là bản DDL skeleton để nộp; chạy lại lần hai báo lỗi `relation "customer" already exists`.
+- **Quyết định:** Tạo `db/migrations/001_init_schema.sql` cùng nội dung DDL nhưng thêm `IF NOT EXISTS`, kèm bảng `schema_migrations` ghi lại migration đã chạy. `db/schema.sql` giữ nguyên làm tài liệu thiết kế.
+- **Lý do:** Chạy `npm run migrate` nhiều lần không lỗi; mọi thay đổi lược đồ sau này là một file migration mới (002, 003…) thay vì sửa file cũ.
+- **Ảnh hưởng:** Thêm thư mục `db/migrations/`, `scripts/migrate.js`. Lược đồ (6 bảng, 7 khoá ngoại, các ràng buộc CHECK và index) không thay đổi.
+
+### TD-07 Sinh mã phiếu `BH-YYYY-NNNNNN` bằng khoá tư vấn trong giao dịch
+
+- **Bối cảnh:** API contract T1 yêu cầu hệ thống sinh mã phiếu nhưng ERD không có sequence riêng cho mã phiếu.
+- **Quyết định:** Trong giao dịch tạo phiếu, TicketRepository gọi `pg_advisory_xact_lock` rồi lấy số thứ tự lớn nhất của năm hiện tại + 1.
+- **Lý do:** Hai nhân viên tiếp nhận tạo phiếu cùng lúc không bị trùng mã; không phải thêm bảng hay cột mới vào ERD.
+- **Ảnh hưởng:** Chỉ `src/repositories/ticketRepository.js`. ERD giữ nguyên.
