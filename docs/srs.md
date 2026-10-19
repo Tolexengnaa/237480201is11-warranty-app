@@ -8,8 +8,8 @@
 | **Case study** | Smart CRM – Mekong Mobile |
 | **Luồng nghiệp vụ** | L2 – Tiếp nhận và phân loại yêu cầu bảo hành |
 | **Track** | SE |
-| **Sinh viên** | `<Họ tên>` – `<MSSV>` – `<Lớp>` |
-| **Ngày nộp** | `<dd/mm/2026>` |
+| **Sinh viên** | `MINGBOUPPHA XAYKHAM` – `237480201is11` – `261_71ITGR40203_03` |
+| **Ngày nộp** | `<09/10/2026>` |
 | **GitHub repo** | https://github.com/Tolexengnaa/237480201is11-warranty-app |
 
 > File này là nguồn Markdown của file PDF nộp (`BT1_`<MSSV>`_HoTenKhongDau.pdf`). Sơ đồ gốc nằm cùng thư mục `docs/` (`*.drawio`); ảnh xuất nằm trong `docs/export/`; DDL nằm ở `db/schema.sql`.
