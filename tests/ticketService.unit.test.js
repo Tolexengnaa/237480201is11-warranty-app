@@ -6,8 +6,8 @@ process.env.SECRET_KEY ||= 'test';
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createTicketService, isOutOfWarranty } = require('../src/services/ticketService');
-const { canTransition } = require('../src/services/statusService');
+const { createTicketService, isOutOfWarranty } = require('../src/backend/services/ticketService');
+const { canTransition } = require('../src/backend/services/statusService');
 
 const RECEPTIONIST = { id: 1, role: 'RECEPTIONIST' };
 const COORDINATOR = { id: 2, role: 'COORDINATOR' };
@@ -91,4 +91,67 @@ test('BR6: trạng thái chỉ đi tới, Từ chối chỉ từ NEW', () => {
   assert.equal(canTransition('CLASSIFIED', 'REJECTED'), false);
   assert.equal(canTransition('ASSIGNED', 'CLASSIFIED'), false);
   assert.equal(canTransition('REJECTED', 'NEW'), false);
+});
+
+test('BR2 (đồng thời): CSDL chặn phiếu thứ hai bằng ux_ticket_open_device → 409 TICKET_OPEN_EXISTS, không phải 500', async () => {
+  let openAfterRollback = null;
+  const service = createTicketService({
+    customers: { findById: async () => ({ id: 1 }) },
+    devices: { findByImei: async () => ({ id: 7, customerId: 1, warrantyEndDate: '2027-01-01' }) },
+    tickets: {
+      // Trong giao dịch chưa thấy phiếu kia; sau rollback mới đọc được phiếu đã commit.
+      findOpenByDeviceId: async (deviceId, client) => (client ? null : openAfterRollback),
+      nextTicketCode: async (year) => `BH-${year}-000124`,
+      insert: async () => {
+        openAfterRollback = { ticketCode: 'BH-2026-000123' };
+        throw Object.assign(new Error('duplicate key'), { code: '23505', constraint: 'ux_ticket_open_device' });
+      },
+    },
+    statusService: { recordCreation: async () => {} },
+    withTransaction: (work) => work({}),
+    now: () => new Date('2026-10-19T07:00:00Z'),
+  });
+  await assert.rejects(service.createTicket(RECEPTIONIST, validInput), {
+    status: 409, code: 'TICKET_OPEN_EXISTS', details: { openTicketCode: 'BH-2026-000123' },
+  });
+});
+
+test('UC07 (đồng thời): số điện thoại vừa được người khác tạo → 409 PHONE_EXISTS, không phải 500', async () => {
+  const service = createTicketService({
+    customers: {
+      findByPhone: async () => null,
+      insert: async () => {
+        throw Object.assign(new Error('duplicate key'), { code: '23505', constraint: 'customer_phone_key' });
+      },
+    },
+  });
+  await assert.rejects(service.createCustomer(RECEPTIONIST, { fullName: 'Khách', phone: '0901234567' }),
+    { status: 409, code: 'PHONE_EXISTS' });
+});
+
+test('UC01-5a: ngày hết hạn bảo hành không có thật (30/02) → 400, không để CSDL báo lỗi 500', async () => {
+  const { service, calls } = makeService({ device: null });
+  for (const warrantyEndDate of ['2026-02-30', '2026-13-01', '2026-1-1', 20270101]) {
+    await assert.rejects(
+      service.createTicket(RECEPTIONIST, { ...validInput, model: 'Galaxy A55', warrantyEndDate }),
+      { status: 400, code: 'WARRANTY_END_DATE_REQUIRED' },
+    );
+  }
+  await service.createTicket(RECEPTIONIST, { ...validInput, model: 'Galaxy A55', warrantyEndDate: '2028-02-29' });
+  assert.equal(calls.inserted.length, 1);
+});
+
+test('FR4: dueFrom / dueTo không phải ISO 8601 → 400 INVALID_FILTER; định dạng giao diện gửi được chấp nhận', async () => {
+  let searched = null;
+  const service = createTicketService({
+    tickets: { search: async (f) => { searched = f; return { total: 0, items: [] }; } },
+  });
+  for (const dueFrom of ['1', 'hello 2026', '2026-02-30', '2026-10-23T25:00:00+07:00']) {
+    await assert.rejects(service.listTickets(RECEPTIONIST, { dueFrom }), { status: 400, code: 'INVALID_FILTER' });
+  }
+  await service.listTickets(RECEPTIONIST, {
+    dueFrom: '2026-10-23T00:00:00+07:00', dueTo: '2026-10-24T23:59:59+07:00',
+  });
+  assert.equal(searched.dueFrom, '2026-10-23T00:00:00+07:00');
+  await service.listTickets(RECEPTIONIST, { dueFrom: '2026-10-23', dueTo: '2026-10-24T00:00:00Z' });
 });

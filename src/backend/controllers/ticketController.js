@@ -23,6 +23,33 @@ router.get('/tickets/:ticketCode', handle(async (req, res) => {
   res.json({ ...t, dueDate: toVnIso(t.dueDate), createdAt: toVnIso(t.createdAt) });
 }));
 
+// T4 – POST /api/tickets/:ticketCode/classify
+router.post('/tickets/:ticketCode/classify', handle(async (req, res) => {
+  const r = await classifyService.classify(req.caller, req.params.ticketCode, req.body);
+  res.json({ ...r, dueDate: toVnIso(r.dueDate) });
+}));
+
+// T5 – POST /api/tickets/:ticketCode/reject
+router.post('/tickets/:ticketCode/reject', handle(async (req, res) => {
+  res.json(await classifyService.reject(req.caller, req.params.ticketCode, req.body));
+}));
+
+// T6 – POST /api/tickets/:ticketCode/assign
+router.post('/tickets/:ticketCode/assign', handle(async (req, res) => {
+  res.json(await assignService.assign(req.caller, req.params.ticketCode, req.body));
+}));
+
+// T7 – POST /api/tickets/:ticketCode/start
+router.post('/tickets/:ticketCode/start', handle(async (req, res) => {
+  res.json(await ticketService.startTicket(req.caller, req.params.ticketCode));
+}));
+
+// T8 – GET /api/tickets/:ticketCode/history
+router.get('/tickets/:ticketCode/history', handle(async (req, res) => {
+  const rows = await ticketService.getHistory(req.caller, req.params.ticketCode);
+  res.json(rows.map((r) => ({ ...r, changedAt: toVnIso(r.changedAt) })));
+}));
+
 // L1 – GET /api/issue-categories
 router.get('/issue-categories', handle(async (req, res) => {
   res.json(await classifyService.listIssueCategories(req.caller));

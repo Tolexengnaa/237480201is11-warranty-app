@@ -1,6 +1,6 @@
 # API CONTRACT – Luồng L2: Tiếp nhận và phân loại yêu cầu bảo hành
 
-**Track:** SE · **Phiên bản:** 1.0 (BT1 – thiết kế, chưa hiện thực) · **Kiến trúc:** xem `docs/srs.md` – Mục 3
+**Track:** SE · **Phiên bản:** 1.1 (buổi 10 – đã hiện thực đủ 14 endpoint; thay đổi so với 1.0: `docs/thay-doi-thiet-ke.md` TD-11) · **Kiến trúc:** xem `docs/srs.md` – Mục 3
 
 ---
 
@@ -128,7 +128,7 @@ Lỗi: **404** `TICKET_NOT_FOUND` · **403** Kỹ thuật viên xem phiếu khô
 Request: `{ "issueCategoryId": 1, "priority": "MEDIUM" }`
 Response **200**: `{ "ticketCode": "BH-2026-000123", "status": "CLASSIFIED", "dueDate": "2026-10-12T14:30:00+07:00" }`
 Xử lý: `dueDate` = thời điểm phân loại + 24 / 72 / 120 giờ theo mức ưu tiên (BR4); đổi trạng thái qua StatusService (NFR5).
-Lỗi: **400** thiếu `issueCategoryId` hoặc `priority` · **403** `FORBIDDEN_ROLE` · **409** `INVALID_STATUS` (phiếu không ở trạng thái `NEW`).
+Lỗi: **400** `ISSUE_CATEGORY_REQUIRED` (thiếu danh mục), `ISSUE_CATEGORY_INVALID` (danh mục không tồn tại hoặc ngừng dùng), `INVALID_PRIORITY` (mức ưu tiên ngoài HIGH / MEDIUM / LOW) · **403** `FORBIDDEN_ROLE` · **404** `TICKET_NOT_FOUND` · **409** `INVALID_STATUS` (phiếu không ở trạng thái `NEW`).
 
 ### T5. `POST /api/tickets/{ticketCode}/reject` – Từ chối
 
@@ -144,7 +144,9 @@ Lỗi:
 
 | HTTP | Mã lỗi | Thông báo | Luồng |
 |---|---|---|---|
+| 400 | `TECHNICIAN_REQUIRED` | Vui lòng chọn kỹ thuật viên | — |
 | 403 | `FORBIDDEN_ROLE` | Bạn không có quyền phân công phiếu | UC03-4a |
+| 404 | `TICKET_NOT_FOUND` | Không tìm thấy phiếu bảo hành | — |
 | 409 | `TICKET_NOT_CLASSIFIED` | Cần phân loại phiếu trước khi phân công | UC03-1a |
 | 409 | `DATA_CHANGED` | Dữ liệu đã thay đổi, vui lòng tải lại | UC03-4b |
 

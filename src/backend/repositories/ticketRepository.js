@@ -106,16 +106,44 @@ async function search(filters, db = pool) {
 
 module.exports = { OPEN_STATUSES, nextTicketCode, findOpenByDeviceId, insert, findDetailByCode, search };
 
+/** Đọc phiếu theo mã để kiểm tra trạng thái trước khi đổi (T4–T8). */
+async function findByCode(ticketCode, db = pool) {
+  const { rows } = await db.query(
+    `SELECT id, ticket_code AS "ticketCode", status, assigned_to AS "assignedTo"
+       FROM ticket WHERE ticket_code = $1`,
+    [ticketCode],
+  );
+  return rows[0] || null;
+}
+
+// Cột được phép cập nhật cùng lúc với trạng thái (FR2: phân loại, FR3: phân công).
+const STATUS_FIELDS = {
+  issueCategoryId: 'issue_category_id',
+  priority: 'priority',
+  dueDate: 'due_date',
+  assignedTo: 'assigned_to',
+};
+
 /**
  * Đổi trạng thái có điều kiện: chỉ cập nhật khi phiếu vẫn ở `fromStatus`.
+ * `fields` ghi cùng câu lệnh để ràng buộc CHECK chk_ticket_classified / chk_ticket_assigned luôn thoả.
  * Trả về false nếu người khác đã đổi trước (→ 409 DATA_CHANGED). Chỉ StatusService được gọi hàm này.
  */
-async function updateStatus({ ticketId, fromStatus, toStatus }, db = pool) {
+async function updateStatus({ ticketId, fromStatus, toStatus, fields = {} }, db = pool) {
+  const params = [ticketId, fromStatus, toStatus];
+  const sets = ['status = $3', 'updated_at = now()'];
+  for (const [key, column] of Object.entries(STATUS_FIELDS)) {
+    if (fields[key] !== undefined) {
+      params.push(fields[key]);
+      sets.push(`${column} = $${params.length}`);
+    }
+  }
   const { rowCount } = await db.query(
-    'UPDATE ticket SET status = $3, updated_at = now() WHERE id = $1 AND status = $2',
-    [ticketId, fromStatus, toStatus],
+    `UPDATE ticket SET ${sets.join(', ')} WHERE id = $1 AND status = $2`,
+    params,
   );
   return rowCount === 1;
 }
 
+module.exports.findByCode = findByCode;
 module.exports.updateStatus = updateStatus;

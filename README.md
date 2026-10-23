@@ -24,7 +24,7 @@ Mekong Mobile tiếp nhận yêu cầu bảo hành thiết bị tại cửa hàn
 | PostgreSQL | 16 | máy cục bộ; cần quyền tạo database |
 | curl hoặc Postman | bất kỳ | gọi thử API (`scripts/demo-api.sh` dùng curl + bash) |
 
-Biến môi trường: chép `.env.example` thành `.env` rồi điền giá trị. **Không commit `.env`.**
+Biến môi trường: chép `.env.example` thành `.env` (ở thư mục gốc) rồi điền giá trị. **Không commit `.env`.**
 
 | Biến | Ý nghĩa | Ví dụ |
 |---|---|---|
@@ -54,40 +54,46 @@ Biến môi trường: chép `.env.example` thành `.env` rồi điền giá tr�
 
 Ứng dụng web nguyên khối 4 lớp, REST/JSON: **Node.js + Express 4**, **PostgreSQL 16** qua thư viện `pg` (SQL tham số hoá, không dùng ORM), token đăng nhập `jsonwebtoken`, băm mật khẩu `bcryptjs`. Lý do chọn: `docs/thay-doi-thiet-ke.md` – TD-03.
 
-Thư mục `src/` ánh xạ một–một với sơ đồ kiến trúc (`docs/architecture.drawio`):
+Mã nguồn nằm trong `src/`, tách thành hai thư mục: **`src/frontend/`** (lớp giao diện, chạy trên trình duyệt) và **`src/backend/`** (API + nghiệp vụ + truy cập dữ liệu, chạy trên Node.js). Frontend chỉ giao tiếp với backend qua REST API (`src/frontend/api/client.js`), không import mã nào của backend. Ánh xạ với sơ đồ kiến trúc (`docs/architecture.drawio`):
 
 | Lớp trong sơ đồ | Thành phần trong sơ đồ | File |
 |---|---|---|
-| 1. Giao diện (Web UI) | M1, M2, M3 | `src/ui/` (từ buổi 9) |
-| 2. API (Controller) | AuthMiddleware | `src/middlewares/authMiddleware.js` |
-| | CustomerController | `src/controllers/customerController.js` |
-| | TicketController | `src/controllers/ticketController.js` |
-| 3. Nghiệp vụ (Service) | TicketService · ClassifyService · AssignService · StatusService | `src/services/*.js` (+ `authService.js` hỗ trợ đăng nhập) |
-| 4. Truy cập dữ liệu (Repository) | Customer · Device · Ticket · IssueCategory · Staff · StatusLog | `src/repositories/*.js` |
+| 1. Giao diện (Web UI) | M1, M2, M3 | `src/frontend/` |
+| 2. API (Controller) | AuthMiddleware | `src/backend/middlewares/authMiddleware.js` |
+| | CustomerController | `src/backend/controllers/customerController.js` |
+| | TicketController | `src/backend/controllers/ticketController.js` |
+| 3. Nghiệp vụ (Service) | TicketService · ClassifyService · AssignService · StatusService | `src/backend/services/*.js` (+ `authService.js` hỗ trợ đăng nhập) |
+| 4. Truy cập dữ liệu (Repository) | Customer · Device · Ticket · IssueCategory · Staff · StatusLog | `src/backend/repositories/*.js` |
 | CSDL PostgreSQL | 6 bảng | `db/migrations/001_init_schema.sql` (từ `db/schema.sql` BT1) |
 
 ```
 237480201is11-warranty-app/
 ├── src/
-│   ├── app.js, server.js     # lắp ráp Express, khởi động server
-│   ├── config/               # đọc .env, connection pool + giao dịch
-│   ├── ui/                   # LỚP 1 – giao diện (buổi 9)
-│   ├── middlewares/          # LỚP 2 – AuthMiddleware, xử lý lỗi
-│   ├── controllers/          # LỚP 2 – Customer/TicketController
-│   ├── services/             # LỚP 3 – quy tắc BR1–BR6, kiểm tra vai trò
-│   ├── repositories/         # LỚP 4 – SQL tham số hoá
-│   └── errors/               # mã lỗi theo API contract
+│   ├── frontend/             # LỚP 1 – giao diện (HTML + JS thuần, không cần build)
+│   │   ├── index.html, main.js, styles.css
+│   │   ├── api/              # client.js (nơi duy nhất gọi fetch), ticket.api.js
+│   │   ├── components/       # DataState (đang tải · rỗng · lỗi), tiện ích DOM
+│   │   └── pages/            # login, M1 tạo phiếu, M2 danh sách, M3 chi tiết
+│   └── backend/              # Node.js + Express
+│       ├── app.js, server.js # lắp ráp Express, khởi động server, phục vụ ../frontend
+│       ├── config/           # đọc .env, connection pool + giao dịch
+│       ├── middlewares/      # LỚP 2 – AuthMiddleware, xử lý lỗi
+│       ├── controllers/      # LỚP 2 – Customer/TicketController
+│       ├── services/         # LỚP 3 – quy tắc BR1–BR6, kiểm tra vai trò
+│       ├── repositories/     # LỚP 4 – SQL tham số hoá
+│       └── errors/           # mã lỗi theo API contract
 ├── db/schema.sql             # DDL nộp ở BT1 (tài liệu)
 ├── db/migrations/            # migration chạy thật: 001, 002…
 ├── scripts/                  # migrate.js, seed.js, demo-api.sh
 ├── tests/                    # unit test lớp nghiệp vụ (node:test)
+├── package.json, .env.example
 └── docs/                     # SRS, sơ đồ .drawio, API contract, nhật ký thay đổi, ảnh kết quả
 ```
 
 ## 5. Cài đặt và chạy
 
 ```bash
-# 1. Cài thư viện
+# 1. Cài thư viện (mọi lệnh chạy ở thư mục gốc của repo)
 npm install
 
 # 2. Tạo CSDL (một lần) – đổi mật khẩu theo máy của bạn
@@ -99,7 +105,7 @@ cp .env.example .env          # điền DB_USER, DB_PASSWORD, SECRET_KEY
 npm run migrate
 npm run seed
 
-# 4. Chạy API tại http://localhost:3000
+# 4. Chạy API tại http://localhost:3000 (giao diện src/frontend/ được phục vụ cùng cổng)
 npm start
 
 # 5. Gọi thử toàn bộ endpoint (terminal khác) và chạy unit test

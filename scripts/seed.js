@@ -2,7 +2,7 @@
 // Dùng: npm run seed
 // Tài khoản mẫu (chỉ dùng ở máy phát triển): mật khẩu chung = Matkhau@123
 const bcrypt = require('bcryptjs');
-const { pool, withTransaction } = require('../src/config/db');
+const { pool, withTransaction } = require('../src/backend/config/db');
 
 const DEV_PASSWORD = 'Matkhau@123';
 

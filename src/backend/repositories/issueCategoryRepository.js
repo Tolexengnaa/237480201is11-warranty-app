@@ -9,3 +9,12 @@ async function listActive(db = pool) {
 }
 
 module.exports = { listActive };
+
+async function findActiveById(id, db = pool) {
+  const { rows } = await db.query(
+    'SELECT id, code, name FROM issue_category WHERE id = $1 AND is_active', [id],
+  );
+  return rows[0] || null;
+}
+
+module.exports.findActiveById = findActiveById;

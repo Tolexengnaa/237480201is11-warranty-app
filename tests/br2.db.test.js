@@ -3,8 +3,8 @@
 // Chạy: npm run test:db
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { pool } = require('../src/config/db');
-const ticketService = require('../src/services/ticketService');
+const { pool } = require('../src/backend/config/db');
+const ticketService = require('../src/backend/services/ticketService');
 
 const PHONE = '0999000222';
 const IMEI = '999000222333444';

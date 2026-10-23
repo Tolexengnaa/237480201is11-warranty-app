@@ -24,14 +24,14 @@ function createStatusService({ tickets = ticketRepository, logs = statusLogRepos
   }
 
   /** Đổi trạng thái + ghi đúng 1 bản ghi lịch sử. Dùng cho phân loại, từ chối, phân công, nhận phiếu. */
-  async function changeStatus(client, { ticketId, fromStatus, toStatus, changedBy, note }) {
+  async function changeStatus(client, { ticketId, fromStatus, toStatus, changedBy, note, fields }) {
     if (!canTransition(fromStatus, toStatus)) {
       throw conflict('INVALID_STATUS', `Không thể chuyển phiếu từ ${fromStatus} sang ${toStatus}`);
     }
     if (toStatus === 'REJECTED' && !(note && note.trim())) {
       throw badRequest('REJECT_REASON_REQUIRED', 'Vui lòng nhập lý do từ chối');
     }
-    const updated = await tickets.updateStatus({ ticketId, fromStatus, toStatus }, client);
+    const updated = await tickets.updateStatus({ ticketId, fromStatus, toStatus, fields }, client);
     if (!updated) {
       throw conflict('DATA_CHANGED', 'Dữ liệu đã thay đổi, vui lòng tải lại');
     }

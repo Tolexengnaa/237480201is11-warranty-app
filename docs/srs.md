@@ -8,8 +8,11 @@
 | **Case study** | Smart CRM – Mekong Mobile |
 | **Luồng nghiệp vụ** | L2 – Tiếp nhận và phân loại yêu cầu bảo hành |
 | **Track** | SE |
-| **Sinh viên** | `MINGBOUPPHA XAYKHAM` – `237480201is11` – `261_71ITGR40203_03` |
-| **Ngày nộp** | `<19/10/2026>` |
+| **Sinh viên** | MINGBOUPPHA XAYKHAM |
+| **MSSV** | 237480201is11 |
+| **Lớp** | 261_71ITGR40203_03 |
+| **Giảng viên** | ThS. Nguyễn Minh Tân |
+| **Ngày nộp** | 19/10/2026 |
 | **GitHub repo** | https://github.com/Tolexengnaa/237480201is11-warranty-app |
 
 > File này là nguồn Markdown của file PDF nộp (`BT1_237480201is11_MingbouphaXaykham.pdf`). Sơ đồ gốc nằm cùng thư mục `docs/` (`*.drawio`); ảnh xuất nằm trong `docs/export/`; DDL nằm ở `db/schema.sql`.
@@ -108,10 +111,10 @@ Toàn bộ tài liệu, sơ đồ, ERD và wireframe chỉ dùng **đúng một 
 
 | Mã | Quy tắc | Nguồn |
 |---|---|---|
-| **BR1** | Mỗi phiếu bảo hành gắn với đúng **một** khách hàng và **một** thiết bị. | `<Bảng 9.1 – đối chiếu>` |
+| **BR1** | Mỗi phiếu bảo hành gắn với đúng **một** khách hàng và **một** thiết bị. | Case study – Bảng 9.1 |
 | **BR2** | Một IMEI chỉ có **tối đa một** phiếu chưa đóng (*Mới, Đã phân loại, Đã phân công, Đang xử lý*) tại một thời điểm. | Phân tích của em |
-| **BR3** | Thiết bị có ngày tiếp nhận sau ngày hết hạn bảo hành vẫn được tạo phiếu nhưng phiếu bị đánh dấu **Hết hạn bảo hành**; Điều phối viên quyết định tiếp nhận hay chuyển *Từ chối*. | `<Bảng 9.1 – đối chiếu>` |
-| **BR4** | Hạn xử lý = thời điểm phân loại + **24 giờ** (Cao) / **72 giờ** (Trung bình) / **120 giờ** (Thấp). | `<Bảng 9.1 – đối chiếu>` |
+| **BR3** | Thiết bị có ngày tiếp nhận sau ngày hết hạn bảo hành vẫn được tạo phiếu nhưng phiếu bị đánh dấu **Hết hạn bảo hành**; Điều phối viên quyết định tiếp nhận hay chuyển *Từ chối*. | Case study – Bảng 9.1 |
+| **BR4** | Hạn xử lý = thời điểm phân loại + **24 giờ** (Cao) / **72 giờ** (Trung bình) / **120 giờ** (Thấp). | Case study – Bảng 9.1 |
 | **BR5** | Chỉ Điều phối viên được phân loại, phân công và từ chối phiếu; chỉ phân công phiếu *Đã phân loại* cho kỹ thuật viên đang hoạt động. | Phân tích của em |
 | **BR6** | Trạng thái chỉ đi theo thứ tự *Mới → Đã phân loại → Đã phân công → Đang xử lý*, không quay lui; *Từ chối* chỉ được chọn khi phiếu đang ở trạng thái *Mới* và phải có lý do. Phiếu không bao giờ bị xoá. | Phân tích của em |
 
@@ -320,7 +323,7 @@ CREATE INDEX idx_log_ticket_time ON ticket_status_log (ticket_id, changed_at);
 
 | Công cụ | Phần áp dụng | Cách dùng (tóm tắt yêu cầu đã gửi) | Em đã chỉnh sửa / kiểm chứng gì |
 |---|---|---|---|
-| Claude (Anthropic) – trợ lý AI dạng chat | Mục 1 – SRS: thuật ngữ, vai trò, FR1–FR6, US1–US7, NFR1–NFR5, BR1–BR6, bảng truy vết | Gửi đề bài và slide buổi 6, nêu luồng L2 – track SE; yêu cầu soạn bản nháp SRS đủ 6 mục theo mẫu của đề | Đếm lại theo yêu cầu tối thiểu của đề: 6 FR (≥ 4), 7 US (5–7), 5 NFR đều có ngưỡng số (≥ 3), 6 quy tắc (≥ 3). Kiểm bảng truy vết FR → US → UC → bảng dữ liệu → màn hình không còn ô trống. `Đối chiếu BR1, BR3, BR4 với Bảng 9.1 của case study và ghi nguồn ở cột Nguồn (mục 1.5); BR2, BR5, BR6 là phân tích của em` |
+| Claude (Anthropic) – trợ lý AI dạng chat | Mục 1 – SRS: thuật ngữ, vai trò, FR1–FR6, US1–US7, NFR1–NFR5, BR1–BR6, bảng truy vết | Gửi đề bài và slide buổi 6, nêu luồng L2 – track SE; yêu cầu soạn bản nháp SRS đủ 6 mục theo mẫu của đề | Đếm lại theo yêu cầu tối thiểu của đề: 6 FR (≥ 4), 7 US (5–7), 5 NFR đều có ngưỡng số (≥ 3), 6 quy tắc (≥ 3). Kiểm bảng truy vết FR → US → UC → bảng dữ liệu → màn hình không còn ô trống. Đối chiếu BR1, BR3, BR4 với Bảng 9.1 của case study và ghi nguồn ở cột Nguồn (mục 1.5); BR2, BR5, BR6 là phân tích của em |
 | Claude (Anthropic) – trợ lý AI dạng chat | Mục 2 – Use Case Diagram (`usecase.drawio`) và đặc tả chi tiết **UC01 – Tạo phiếu bảo hành** | Yêu cầu vẽ sơ đồ use case dạng file draw.io gốc và đặc tả use case chính có luồng ngoại lệ | Em chọn đưa thao tác *Từ chối* vào UC02 (chỉ từ trạng thái *Mới*) và sửa BR6, FR2, US2 cho khớp. Mở `usecase.drawio` kiểm: 3 actor nằm ngoài ranh giới hệ thống, 7 use case đặt tên bằng động từ, có quan hệ «include» UC01 → UC07, có chú thích ký hiệu. Kiểm 7 luồng ngoại lệ của UC01 (2a, 3a, 4a, 5a, 5b, 5c, 7a) đều có thông báo trên wireframe M1 |
 | Claude (Anthropic) – trợ lý AI dạng chat | Mục 3 – sơ đồ kiến trúc (`architecture.drawio`) và 4 câu lập luận | Yêu cầu thiết kế kiến trúc phân lớp cho luồng L2 và viết câu lập luận theo khuôn "Vì NFR… yêu cầu…, tôi chọn…, đánh đổi là…" | Kiểm từng câu lập luận có đủ mã NFR, ngưỡng số, quyết định và đánh đổi. Kiểm mũi tên giữa các lớp chỉ đi xuống và có ghi cách trao đổi; tên 6 bảng ở lớp lưu trữ khớp ERD; đường dẫn API trên Controller khớp `api-contract.md` |
 | Claude (Anthropic) – trợ lý AI dạng chat | Mục 4 – ERD (`erd.drawio`) và `db/schema.sql` | Yêu cầu thiết kế ERD 4–6 bảng và SQL DDL skeleton cho PostgreSQL 16 | Chạy `schema.sql` trên PostgreSQL 16: tạo đủ 6 bảng, 7 khoá ngoại, không lỗi. Thử chèn dữ liệu sai – phiếu thứ hai cho cùng IMEI (BR2), *Từ chối* không có lý do, phiếu *Đã phân công* không có kỹ thuật viên – đều bị CSDL chặn. Soi ERD theo năm lỗi ở slide buổi 6: không có bảng cô lập; có bảng lịch sử `ticket_status_log`; không lưu giá trị tính được (*Hết hạn bảo hành*, *Quá hạn*); có index cho truy vấn danh sách; khoá chính là `id` thay vì khoá nghiệp vụ (mã phiếu, IMEI, số điện thoại để UNIQUE) |
@@ -330,5 +333,6 @@ CREATE INDEX idx_log_ticket_time ON ticket_status_log (ticket_id, changed_at);
 
 **Cam kết.** Tôi xác nhận đã đọc, hiểu và chịu trách nhiệm về toàn bộ nội dung nộp. Các phần có sử dụng AI đã được khai báo đầy đủ ở bảng trên và đã được tôi kiểm chứng lại.
 
-**Họ tên:** `MINGBOUPPHA XAYKHAM` · **MSSV:** `237480201IS11` · **Lớp:** `261_71ITGR40203_03` · **Ngày:** `19/10/2026>`
+**Họ tên:** MINGBOUPPHA XAYKHAM · **MSSV:** 237480201is11 · **Lớp:** 261_71ITGR40203_03 · **Ngày:** 19/10/2026
+
 **Link GitHub repo (file `.drawio` gốc, `schema.sql`, `srs.md`):** https://github.com/Tolexengnaa/237480201is11-warranty-app

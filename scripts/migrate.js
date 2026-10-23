@@ -2,7 +2,7 @@
 // Dùng: npm run migrate
 const fs = require('fs');
 const path = require('path');
-const { pool, withTransaction } = require('../src/config/db');
+const { pool, withTransaction } = require('../src/backend/config/db');
 
 const DIR = path.join(__dirname, '..', 'db', 'migrations');
 
