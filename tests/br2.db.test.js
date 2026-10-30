@@ -46,7 +46,7 @@ test('BR2 (lớp nghiệp vụ): tạo phiếu thứ hai cho cùng IMEI khi phi�
   await assert.rejects(
     ticketService.createTicket(receptionist, { customerId, imei: IMEI, issueDescription: 'Phiếu thứ hai' }),
     (err) => {
-      assert.equal(err.status, 409);
+      assert.equal(err.kind, 'CONFLICT');
       assert.equal(err.code, 'TICKET_OPEN_EXISTS');
       assert.equal(err.details.openTicketCode, first.ticketCode);
       return true;

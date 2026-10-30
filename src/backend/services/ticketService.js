@@ -6,13 +6,11 @@ const deviceRepository = require('../repositories/deviceRepository');
 const ticketRepository = require('../repositories/ticketRepository');
 const statusLogRepository = require('../repositories/statusLogRepository');
 const defaultStatusService = require('./statusService');
-const { badRequest, forbidden, notFound, conflict } = require('../errors/AppError');
+const { invalidInput, notAllowed, notFound, conflict } = require('../errors/AppError');
 
 const PHONE_RE = /^[0-9]{10}$/;
 const IMEI_RE = /^[0-9]{15}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const ISO_TIME_RE = /^(\d{4}-\d{2}-\d{2})(T\d{2}:\d{2}(:\d{2}(\.\d{1,6})?)?(Z|[+-]\d{2}:\d{2})?)?$/;
-const PG_UNIQUE_VIOLATION = '23505';
 const STATUSES = ['NEW', 'CLASSIFIED', 'ASSIGNED', 'IN_PROGRESS', 'REJECTED'];
 const PRIORITIES = ['HIGH', 'MEDIUM', 'LOW'];
 
@@ -26,44 +24,18 @@ function isOutOfWarranty(warrantyEndDate, at = new Date()) {
   return vnDate(at) > warrantyEndDate;
 }
 
-/** YYYY-MM-DD có thật trên lịch – Date.parse của V8 vẫn nhận "2026-02-30" (thành 02/03). */
-function isValidYmd(value) {
-  if (typeof value !== 'string' || !DATE_RE.test(value)) return false;
-  const d = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(d.getTime()) && d.toISOString().startsWith(value);
-}
-
-/** Thời gian ISO 8601 (ngày, có thể kèm giờ và múi giờ) mà PostgreSQL đọc được. */
-function isValidIsoTime(value) {
-  const m = ISO_TIME_RE.exec(typeof value === 'string' ? value : '');
-  return Boolean(m) && isValidYmd(m[1]) && !Number.isNaN(Date.parse(value));
-}
-
-/** Lỗi UNIQUE của PostgreSQL trên đúng ràng buộc `constraint` (hai yêu cầu chạy đồng thời). */
-function isUniqueViolation(err, constraint) {
-  return Boolean(err) && err.code === PG_UNIQUE_VIOLATION && err.constraint === constraint;
-}
-
-/** BR2 – 409 kèm mã phiếu đang mở để giao diện dẫn tới phiếu đó. */
-function openTicketConflict(open) {
-  return open
-    ? conflict('TICKET_OPEN_EXISTS', `Thiết bị đang có phiếu ${open.ticketCode} chưa đóng`,
-      { openTicketCode: open.ticketCode })
-    : conflict('TICKET_OPEN_EXISTS', 'Thiết bị đang có phiếu chưa đóng');
-}
-
 function requireRole(caller, roles, message) {
   if (!caller || !roles.includes(caller.role)) {
-    throw forbidden('FORBIDDEN_ROLE', message || 'Bạn không có quyền thực hiện chức năng này');
+    throw notAllowed('FORBIDDEN_ROLE', message || 'Bạn không có quyền thực hiện chức năng này');
   }
 }
 
 function validatePhone(phone) {
-  if (!PHONE_RE.test(phone || '')) throw badRequest('INVALID_PHONE', 'Số điện thoại không hợp lệ');
+  if (!PHONE_RE.test(phone || '')) throw invalidInput('INVALID_PHONE', 'Số điện thoại không hợp lệ');
 }
 
 function validateImei(imei) {
-  if (!IMEI_RE.test(imei || '')) throw badRequest('INVALID_IMEI', 'IMEI phải gồm 15 chữ số');
+  if (!IMEI_RE.test(imei || '')) throw invalidInput('INVALID_IMEI', 'IMEI phải gồm 15 chữ số');
 }
 
 function createTicketService({
@@ -87,21 +59,13 @@ function createTicketService({
   async function createCustomer(caller, { fullName, phone }) {
     requireRole(caller, ['RECEPTIONIST']);
     if (!fullName || !String(fullName).trim()) {
-      throw badRequest('FULL_NAME_REQUIRED', 'Vui lòng nhập họ tên khách hàng');
+      throw invalidInput('FULL_NAME_REQUIRED', 'Vui lòng nhập họ tên khách hàng');
     }
     validatePhone(phone);
     if (await customers.findByPhone(phone)) {
       throw conflict('PHONE_EXISTS', 'Số điện thoại đã thuộc về một khách hàng khác');
     }
-    try {
-      return await customers.insert({ fullName: String(fullName).trim(), phone });
-    } catch (err) {
-      // Người khác vừa tạo cùng số điện thoại giữa lúc kiểm tra và lúc ghi.
-      if (isUniqueViolation(err, 'customer_phone_key')) {
-        throw conflict('PHONE_EXISTS', 'Số điện thoại đã thuộc về một khách hàng khác');
-      }
-      throw err;
-    }
+    return customers.insert({ fullName: String(fullName).trim(), phone });
   }
 
   // ---- D1: tra cứu thiết bị (UC01 bước 5) ----
@@ -126,60 +90,52 @@ function createTicketService({
       ? input.issueDescription.trim() : '';
 
     if (!Number.isInteger(customerId) || customerId <= 0) {
-      throw badRequest('CUSTOMER_ID_REQUIRED', 'Vui lòng chọn khách hàng');
+      throw invalidInput('CUSTOMER_ID_REQUIRED', 'Vui lòng chọn khách hàng');
     }
     validateImei(imei);
-    if (!issueDescription) throw badRequest('ISSUE_DESCRIPTION_REQUIRED', 'Vui lòng nhập mô tả lỗi');
+    if (!issueDescription) throw invalidInput('ISSUE_DESCRIPTION_REQUIRED', 'Vui lòng nhập mô tả lỗi');
 
     const createdAt = now();
-    let deviceId;
-    try {
-      return await withTransaction(async (client) => {
-        const customer = await customers.findById(customerId, client);
-        if (!customer) throw notFound('CUSTOMER_NOT_FOUND', 'Không tìm thấy khách hàng');
+    return withTransaction(async (client) => {
+      const customer = await customers.findById(customerId, client);
+      if (!customer) throw notFound('CUSTOMER_NOT_FOUND', 'Không tìm thấy khách hàng');
 
-        let device = await devices.findByImei(imei, client);
-        if (!device) {
-          // UC01-5a: thiết bị mới → bắt buộc Model và Ngày hết hạn bảo hành.
-          if (!model || !String(model).trim()) throw badRequest('MODEL_REQUIRED', 'Vui lòng nhập model thiết bị');
-          if (!isValidYmd(warrantyEndDate)) {
-            throw badRequest('WARRANTY_END_DATE_REQUIRED', 'Vui lòng nhập ngày hết hạn bảo hành (YYYY-MM-DD)');
-          }
-          device = await devices.insert(
-            { customerId, imei, model: String(model).trim(), warrantyEndDate }, client,
-          );
-        } else if (device.customerId !== customerId) {
-          // BR1: phiếu gắn với đúng một khách hàng và một thiết bị của chính khách đó.
-          throw conflict('DEVICE_OWNER_MISMATCH', 'Thiết bị này đã đăng ký cho khách hàng khác');
+      let device = await devices.findByImei(imei, client);
+      if (!device) {
+        // UC01-5a: thiết bị mới → bắt buộc Model và Ngày hết hạn bảo hành.
+        if (!model || !String(model).trim()) throw invalidInput('MODEL_REQUIRED', 'Vui lòng nhập model thiết bị');
+        if (!DATE_RE.test(warrantyEndDate || '') || Number.isNaN(Date.parse(warrantyEndDate))) {
+          throw invalidInput('WARRANTY_END_DATE_REQUIRED', 'Vui lòng nhập ngày hết hạn bảo hành (YYYY-MM-DD)');
         }
-
-        // BR2: một IMEI tối đa một phiếu chưa đóng (CSDL còn chặn thêm bằng UNIQUE một phần).
-        deviceId = device.id;
-        const open = await tickets.findOpenByDeviceId(device.id, client);
-        if (open) throw openTicketConflict(open);
-
-        const year = Number(vnDate(createdAt).slice(0, 4));
-        const ticketCode = await tickets.nextTicketCode(year, client);
-        const ticket = await tickets.insert(
-          { ticketCode, deviceId: device.id, issueDescription, createdBy: caller.id }, client,
+        device = await devices.insert(
+          { customerId, imei, model: String(model).trim(), warrantyEndDate }, client,
         );
-        await statusService.recordCreation(client, { ticketId: ticket.id, changedBy: caller.id });
-
-        return {
-          ticketCode: ticket.ticketCode,
-          status: ticket.status,
-          outOfWarranty: isOutOfWarranty(device.warrantyEndDate, ticket.createdAt),
-          createdAt: ticket.createdAt,
-        };
-      });
-    } catch (err) {
-      // BR2 khi hai phiếu cho cùng IMEI được lưu đồng thời: UNIQUE một phần ux_ticket_open_device chặn
-      // phiếu thứ hai; giao dịch đã rollback nên đọc lại phiếu đang mở bằng kết nối ngoài giao dịch.
-      if (isUniqueViolation(err, 'ux_ticket_open_device')) {
-        throw openTicketConflict(await tickets.findOpenByDeviceId(deviceId));
+      } else if (device.customerId !== customerId) {
+        // BR1: phiếu gắn với đúng một khách hàng và một thiết bị của chính khách đó.
+        throw conflict('DEVICE_OWNER_MISMATCH', 'Thiết bị này đã đăng ký cho khách hàng khác');
       }
-      throw err;
-    }
+
+      // BR2: một IMEI tối đa một phiếu chưa đóng (CSDL còn chặn thêm bằng UNIQUE một phần).
+      const open = await tickets.findOpenByDeviceId(device.id, client);
+      if (open) {
+        throw conflict('TICKET_OPEN_EXISTS', `Thiết bị đang có phiếu ${open.ticketCode} chưa đóng`,
+          { openTicketCode: open.ticketCode });
+      }
+
+      const year = Number(vnDate(createdAt).slice(0, 4));
+      const ticketCode = await tickets.nextTicketCode(year, client);
+      const ticket = await tickets.insert(
+        { ticketCode, deviceId: device.id, issueDescription, createdBy: caller.id }, client,
+      );
+      await statusService.recordCreation(client, { ticketId: ticket.id, changedBy: caller.id });
+
+      return {
+        ticketCode: ticket.ticketCode,
+        status: ticket.status,
+        outOfWarranty: isOutOfWarranty(device.warrantyEndDate, ticket.createdAt),
+        createdAt: ticket.createdAt,
+      };
+    });
   }
 
   // ---- T2: danh sách phiếu (UC04, FR4) ----
@@ -187,19 +143,19 @@ function createTicketService({
     requireRole(caller, ['RECEPTIONIST', 'COORDINATOR', 'TECHNICIAN']);
     const page = query.page === undefined ? 1 : Number(query.page);
     const size = query.size === undefined ? 20 : Number(query.size);
-    if (!Number.isInteger(page) || page < 1) throw badRequest('INVALID_PAGE', 'page phải là số nguyên ≥ 1');
+    if (!Number.isInteger(page) || page < 1) throw invalidInput('INVALID_PAGE', 'page phải là số nguyên ≥ 1');
     if (!Number.isInteger(size) || size < 1 || size > 100) {
-      throw badRequest('INVALID_PAGE', 'size phải là số nguyên từ 1 đến 100');
+      throw invalidInput('INVALID_PAGE', 'size phải là số nguyên từ 1 đến 100');
     }
     if (query.status && !STATUSES.includes(query.status)) {
-      throw badRequest('INVALID_FILTER', `status phải là một trong ${STATUSES.join(', ')}`);
+      throw invalidInput('INVALID_FILTER', `status phải là một trong ${STATUSES.join(', ')}`);
     }
     if (query.priority && !PRIORITIES.includes(query.priority)) {
-      throw badRequest('INVALID_FILTER', `priority phải là một trong ${PRIORITIES.join(', ')}`);
+      throw invalidInput('INVALID_FILTER', `priority phải là một trong ${PRIORITIES.join(', ')}`);
     }
     for (const key of ['dueFrom', 'dueTo']) {
-      if (query[key] && !isValidIsoTime(query[key])) {
-        throw badRequest('INVALID_FILTER', `${key} phải là thời gian ISO 8601`);
+      if (query[key] && Number.isNaN(Date.parse(query[key]))) {
+        throw invalidInput('INVALID_FILTER', `${key} phải là thời gian ISO 8601`);
       }
     }
 
@@ -219,7 +175,7 @@ function createTicketService({
     const t = await tickets.findDetailByCode(ticketCode);
     if (!t) throw notFound('TICKET_NOT_FOUND', 'Không tìm thấy phiếu bảo hành');
     if (caller.role === 'TECHNICIAN' && t.assignedTo !== caller.id) {
-      throw forbidden('FORBIDDEN_ROLE', 'Phiếu này không được phân công cho bạn');
+      throw notAllowed('FORBIDDEN_ROLE', 'Phiếu này không được phân công cho bạn');
     }
     return {
       ticketCode: t.ticketCode,
@@ -244,7 +200,7 @@ function createTicketService({
       const ticket = await tickets.findByCode(ticketCode, client);
       if (!ticket) throw notFound('TICKET_NOT_FOUND', 'Không tìm thấy phiếu bảo hành');
       if (ticket.assignedTo !== caller.id) {
-        throw forbidden('FORBIDDEN_ROLE', 'Phiếu này không được phân công cho bạn');
+        throw notAllowed('FORBIDDEN_ROLE', 'Phiếu này không được phân công cho bạn');
       }
       if (ticket.status !== 'ASSIGNED') {
         throw conflict('INVALID_STATUS', 'Chỉ nhận phiếu đang ở trạng thái Đã phân công');
@@ -262,7 +218,7 @@ function createTicketService({
     const ticket = await tickets.findByCode(ticketCode);
     if (!ticket) throw notFound('TICKET_NOT_FOUND', 'Không tìm thấy phiếu bảo hành');
     if (caller.role === 'TECHNICIAN' && ticket.assignedTo !== caller.id) {
-      throw forbidden('FORBIDDEN_ROLE', 'Phiếu này không được phân công cho bạn');
+      throw notAllowed('FORBIDDEN_ROLE', 'Phiếu này không được phân công cho bạn');
     }
     return logs.listByTicketId(ticket.id);
   }

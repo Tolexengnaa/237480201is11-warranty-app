@@ -4,7 +4,7 @@ const staffRepository = require('../repositories/staffRepository');
 const ticketRepository = require('../repositories/ticketRepository');
 const defaultStatusService = require('./statusService');
 const { requireRole } = require('./ticketService');
-const { badRequest, notFound, conflict } = require('../errors/AppError');
+const { invalidInput, notFound, conflict } = require('../errors/AppError');
 
 function createAssignService({
   staff = staffRepository,
@@ -23,7 +23,7 @@ function createAssignService({
     requireRole(caller, ['COORDINATOR'], 'Bạn không có quyền phân công phiếu'); // UC03-4a
     const technicianId = input && input.technicianId;
     if (!Number.isInteger(technicianId) || technicianId <= 0) {
-      throw badRequest('TECHNICIAN_REQUIRED', 'Vui lòng chọn kỹ thuật viên');
+      throw invalidInput('TECHNICIAN_REQUIRED', 'Vui lòng chọn kỹ thuật viên');
     }
 
     return withTransaction(async (client) => {

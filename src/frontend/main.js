@@ -5,21 +5,27 @@ import { LoginPage } from './pages/login.js';
 import { TicketListPage } from './pages/ticketList.js';
 import { TicketCreatePage } from './pages/ticketCreate.js';
 import { TicketDetailPage } from './pages/ticketDetail.js';
+import { MasterDataPage } from './pages/masterData.js';
 
 const routes = [
   { pattern: /^\/login$/, page: LoginPage, public: true },
   { pattern: /^\/tickets$/, page: TicketListPage },
   { pattern: /^\/tickets\/new$/, page: TicketCreatePage, roles: ['RECEPTIONIST'] },
+  { pattern: /^\/data$/, page: MasterDataPage, roles: ['RECEPTIONIST', 'COORDINATOR'] },
   { pattern: /^\/tickets\/(?<code>[^/]+)$/, page: TicketDetailPage },
 ];
 
 const topbar = document.getElementById('topbar');
 const main = document.getElementById('main');
 
-function renderTopbar() {
+function renderTopbar(current = '') {
   const staff = session.staff;
   topbar.replaceChildren(
-    h('a', { class: 'brand', href: '#/tickets' }, h('strong', {}, 'Smart CRM'), ' · Bảo hành'),
+    h('a', { class: 'brand', href: '#/tickets' }, h('span', { class: 'brand-mark', 'aria-hidden': 'true' }, 'M'), h('strong', {}, 'Mekong Mobile'), h('span', { class: 'brand-sub' }, 'Bảo hành')),
+    staff ? h('nav', { class: 'nav', 'aria-label': 'Chính' },
+      h('a', { href: '#/tickets', class: current.startsWith('/tickets') ? 'active' : '' }, 'Phiếu bảo hành'),
+      ['RECEPTIONIST', 'COORDINATOR'].includes(staff.role)
+        ? h('a', { href: '#/data', class: current === '/data' ? 'active' : '' }, 'Khách hàng & thiết bị') : null) : null,
     staff
       ? h('span', { class: 'who' }, `${staff.fullName} (${ROLE_LABEL[staff.role] || staff.role})`, ' | ',
         h('a', {
@@ -40,7 +46,7 @@ function router() {
   if (route.public && session.token) { window.location.hash = '#/tickets'; return; }
   if (route.roles && !route.roles.includes(session.staff?.role)) { window.location.hash = '#/tickets'; return; }
 
-  renderTopbar();
+  renderTopbar(path);
   const params = path.match(route.pattern).groups || {};
   route.page(main, { params, query });
   window.scrollTo(0, 0);

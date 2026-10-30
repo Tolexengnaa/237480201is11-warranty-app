@@ -1,0 +1,36 @@
+# Một lệnh dựng cả hệ thống:  docker compose up --build
+# Giao diện + API: http://localhost:3000   ·   Dừng: docker compose down   ·   Xoá cả dữ liệu: docker compose down -v
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: smartcrm
+      POSTGRES_USER: smartcrm
+      POSTGRES_PASSWORD: smartcrm
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartcrm -d smartcrm"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db            # tên service, không phải localhost
+      DB_PORT: 5432
+      DB_NAME: smartcrm
+      DB_USER: smartcrm
+      DB_PASSWORD: smartcrm
+      APP_PORT: 3000
+      SECRET_KEY: doi-khoa-bi-mat-nay-khi-trien-khai   # chỉ dùng để chạy thử; đổi khi triển khai thật
+      TOKEN_EXPIRES_IN: 8h
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

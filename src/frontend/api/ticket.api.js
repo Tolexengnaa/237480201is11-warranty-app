@@ -17,6 +17,15 @@ export const createCustomer = (fullName, phone) => request('POST', '/customers',
 // D1 – thiết bị
 export const findDeviceByImei = (imei) => request('GET', '/devices', { query: { imei } });
 
+// S1 – CRUD khách hàng / thiết bị (màn hình M4)
+export const listCustomers = (q) => request('GET', '/customers', { query: { q, limit: 200 } });
+export const updateCustomer = (id, fullName, phone) => request('PUT', `/customers/${id}`, { body: { fullName, phone } });
+export const deleteCustomer = (id) => request('DELETE', `/customers/${id}`);
+export const listDevices = () => request('GET', '/devices', { query: { limit: 200 } });
+export const createDevice = (input) => request('POST', '/devices', { body: input });
+export const updateDevice = (id, model, warrantyEndDate) => request('PUT', `/devices/${id}`, { body: { model, warrantyEndDate } });
+export const deleteDevice = (id) => request('DELETE', `/devices/${id}`);
+
 // T1–T8 – phiếu bảo hành
 export const createTicket = (input) => request('POST', '/tickets', { body: input });
 export const listTickets = (filters) => request('GET', '/tickets', { query: filters });

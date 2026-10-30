@@ -17,18 +17,13 @@ export function TicketCreatePage(root) {
   const customerMsg = h('div', { class: 'messages' });
   const createCustomerBtn = h('button', { class: 'btn', type: 'button', hidden: true }, 'Tạo khách hàng mới');
 
-  // Đổi số điện thoại thì bỏ khách hàng đã tra cứu – tránh lưu phiếu cho khách cũ.
-  function resetCustomer() {
+  async function lookupCustomer() {
     customerMsg.replaceChildren();
     state.customer = null;
     createCustomerBtn.hidden = true;
     fullName.disabled = true;
     fullName.value = '';
     refreshSave();
-  }
-
-  async function lookupCustomer() {
-    resetCustomer();
     if (!PHONE_RE.test(phone.value)) {
       customerMsg.append(errorText('(2a) Số điện thoại không hợp lệ'));
       return;
@@ -71,8 +66,7 @@ export function TicketCreatePage(root) {
   const warrantyBadge = h('span', {});
   const deviceMsg = h('div', { class: 'messages' });
 
-  // Đổi IMEI thì phải kiểm tra lại – kết quả cũ (thiết bị, phiếu đang mở) không còn đúng.
-  function resetDevice() {
+  async function lookupDevice() {
     deviceMsg.replaceChildren();
     warrantyBadge.replaceChildren();
     Object.assign(state, { device: null, newDevice: false, blocked: false });
@@ -81,10 +75,6 @@ export function TicketCreatePage(root) {
     model.value = '';
     warrantyEnd.value = '';
     refreshSave();
-  }
-
-  async function lookupDevice() {
-    resetDevice();
     if (!IMEI_RE.test(imei.value)) {
       deviceMsg.append(errorText('(4a) IMEI phải gồm 15 chữ số'));
       return;
@@ -153,8 +143,6 @@ export function TicketCreatePage(root) {
   }
 
   description.addEventListener('input', () => formMsg.replaceChildren());
-  phone.addEventListener('input', () => { if (state.customer || !fullName.disabled) resetCustomer(); });
-  imei.addEventListener('input', () => { if (state.device || state.newDevice || state.blocked) resetDevice(); });
   phone.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); lookupCustomer(); } });
   imei.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); lookupDevice(); } });
   refreshSave();

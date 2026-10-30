@@ -63,7 +63,7 @@ Luồng L2 – Tiếp nhận và phân loại yêu cầu bảo hành · Track SE
 - **Bối cảnh:** API contract T1 yêu cầu hệ thống sinh mã phiếu nhưng ERD không có sequence riêng cho mã phiếu.
 - **Quyết định:** Trong giao dịch tạo phiếu, TicketRepository gọi `pg_advisory_xact_lock` rồi lấy số thứ tự lớn nhất của năm hiện tại + 1.
 - **Lý do:** Hai nhân viên tiếp nhận tạo phiếu cùng lúc không bị trùng mã; không phải thêm bảng hay cột mới vào ERD.
-- **Ảnh hưởng:** Chỉ `src/repositories/ticketRepository.js`. ERD giữ nguyên.
+- **Ảnh hưởng:** Chỉ `src/backend/repositories/ticketRepository.js`. ERD giữ nguyên.
 
 ---
 
@@ -72,23 +72,23 @@ Luồng L2 – Tiếp nhận và phân loại yêu cầu bảo hành · Track SE
 ### TD-08 Giao diện dùng HTML + JavaScript thuần (ES modules), Express phục vụ cùng cổng với API
 
 - **Bối cảnh:** Sơ đồ kiến trúc BT1 có lớp Giao diện (M1, M2, M3) nhưng chưa chốt công nghệ; slide buổi 10 yêu cầu ≥ 3 màn hình gọi API thật, có `src/api/client.js` và `*.api.js`, không gọi `fetch(` trong màn hình.
-- **Quyết định:** `src/ui/` gồm `api/` (client.js là nơi duy nhất gọi `fetch`, `ticket.api.js` ánh xạ từng endpoint), `components/DataState.js` (đang tải · rỗng · lỗi), `pages/` (login, M1, M2, M3). Express phục vụ `src/ui` bằng `express.static` tại `http://localhost:3000/`.
+- **Quyết định:** `src/frontend/` gồm `api/` (client.js là nơi duy nhất gọi `fetch`, `ticket.api.js` ánh xạ từng endpoint), `components/DataState.js` (đang tải · rỗng · lỗi), `pages/` (login, M1, M2, M3). Express phục vụ `src/frontend` bằng `express.static` tại `http://localhost:3000/`.
 - **Lý do:** Không cần bước build hay cài thêm framework, nên README mục 3 giữ được mỗi bước một lệnh; cùng cổng với API nên không phát sinh lỗi CORS (lỗi tích hợp hay gặp nhất của track SE theo slide buổi 10). Phạm vi chỉ 3 màn hình nên chưa cần React/Vue.
-- **Ảnh hưởng:** Thêm `src/ui/*`, một dòng `express.static` trong `src/app.js`. Không đổi ERD, API contract hay lớp nghiệp vụ.
+- **Ảnh hưởng:** Thêm `src/frontend/*`, một dòng `express.static` trong `src/backend/app.js`. Không đổi ERD, API contract hay lớp nghiệp vụ.
 
 ### TD-09 Thu hẹp phạm vi Sprint 2
 
 - **Bối cảnh:** Slide buổi 10 cho phép cắt phần ngoài luồng chính nếu thiếu thời gian, nhưng phải ghi lại.
 - **Quyết định:** Phân trang M2 rút gọn thành nút ‹ / › kèm "trang x / y" thay cho dãy số trang như wireframe; chưa đo NFR1 với 10.000 phiếu (chuyển sang trước buổi 12); chưa làm Docker (buổi 11). Giữ nguyên: đủ 3 màn hình, toàn bộ luồng ngoại lệ UC01 và UC03 trên giao diện, ba trạng thái dữ liệu, bộ lọc hạn xử lý từ – đến.
 - **Lý do:** Bảng tiêu chí BT2 chấm luồng chính, test và README chứ không chấm số lượng tính năng; dãy số trang không ảnh hưởng FR4 (lọc, tìm, phân trang vẫn đủ).
-- **Ảnh hưởng:** Chỉ `src/ui/pages/ticketList.js`. README mục 6 ghi hai việc còn lại.
+- **Ảnh hưởng:** Chỉ `src/frontend/pages/ticketList.js`. README mục 6 ghi hai việc còn lại.
 
 ### TD-10 Đổi trạng thái kèm các cột nghiệp vụ trong cùng một câu lệnh UPDATE
 
 - **Bối cảnh:** DDL BT1 có ràng buộc `chk_ticket_classified` (đã phân loại thì bắt buộc danh mục, mức ưu tiên, hạn xử lý) và `chk_ticket_assigned` (đã phân công thì bắt buộc kỹ thuật viên). Nếu đổi trạng thái trước rồi mới ghi các cột này thì CSDL chặn ngay câu lệnh đầu.
 - **Quyết định:** `TicketRepository.updateStatus` nhận thêm `fields` (`issueCategoryId`, `priority`, `dueDate`, `assignedTo`) và ghi cùng trạng thái trong một câu UPDATE có điều kiện `status = fromStatus`. StatusService vẫn là nơi duy nhất gọi hàm này và ghi lịch sử trong cùng giao dịch.
 - **Lý do:** Giữ nguyên ràng buộc CHECK của BT1 (không nới lỏng CSDL để chiều mã); điều kiện `status = fromStatus` đồng thời xử lý trường hợp hai Điều phối viên thao tác cùng lúc (UC03-4b → 409 `DATA_CHANGED`).
-- **Ảnh hưởng:** `src/repositories/ticketRepository.js`, `src/services/statusService.js`. ERD giữ nguyên.
+- **Ảnh hưởng:** `src/backend/repositories/ticketRepository.js`, `src/backend/services/statusService.js`. ERD giữ nguyên.
 
 ### TD-11 Bổ sung mã lỗi 400 cho T4 và T6; đổi thứ tự mục README
 
@@ -97,9 +97,28 @@ Luồng L2 – Tiếp nhận và phân loại yêu cầu bảo hành · Track SE
 - **Lý do:** Giao diện cần mã lỗi riêng để hiện đúng thông báo; người chấm đọc README theo số mục trong slide.
 - **Ảnh hưởng:** `docs/api-contract.md` mục T4, T6; `README.md`. Không đổi endpoint hay dữ liệu trả về khi thành công.
 
-### TD-12 Tách mã nguồn trong `src/` thành hai thư mục `src/frontend/` và `src/backend/`
+### TD-12 Lớp nghiệp vụ không còn mang mã HTTP (tiêu chí C2)
 
-- **Bối cảnh:** Theo TD-08, giao diện nằm trong `src/ui/`, lẫn với mã Express và lớp nghiệp vụ trong cùng thư mục `src/`, khó nhận ra ranh giới giữa phần chạy trên trình duyệt và phần chạy trên server.
-- **Quyết định:** Chuyển `src/ui/*` sang `src/frontend/`; chuyển mã Express và các lớp nghiệp vụ (`src/app.js`, `src/server.js`, `src/config/`, `src/controllers/`, …) sang `src/backend/`. `db/`, `scripts/`, `tests/`, `package.json`, `.env.example` giữ ở thư mục gốc. Backend vẫn phục vụ `src/frontend/` bằng `express.static` tại `http://localhost:3000/`.
-- **Lý do:** Ranh giới rõ ràng: frontend chỉ gọi backend qua REST API, không import mã backend; vẫn giữ cùng cổng nên không phát sinh CORS và không cần bước build.
-- **Ảnh hưởng:** Đường dẫn file trong README mục 4; `package.json` (`start`, `dev` trỏ tới `src/backend/server.js`); đường dẫn `require` trong `scripts/` và `tests/`; một dòng `express.static` trong `src/backend/app.js`. Không đổi mã nghiệp vụ, ERD hay API contract. Các mục TD cũ giữ nguyên đường dẫn tại thời điểm ghi.
+- **Bối cảnh:** `AppError` trước đây mang `status` (400/403/409…) và các service gọi `badRequest`, `forbidden`… – nghĩa là lớp nghiệp vụ biết tới HTTP.
+- **Quyết định:** `AppError` mang `kind` (`INVALID_INPUT`, `NOT_AUTHENTICATED`, `NOT_ALLOWED`, `NOT_FOUND`, `CONFLICT`); hàm tạo lỗi đổi tên theo từ vựng nghiệp vụ (`invalidInput`, `notAuthenticated`, `notAllowed`, `notFound`, `conflict`). Bảng `kind → mã HTTP` nằm duy nhất trong `src/backend/middlewares/errorHandler.js`. Test kiểm `kind` thay vì `status`; thêm `tests/errorHandler.unit.test.js`.
+- **Lý do:** Thay giao diện giao tiếp (CLI, hàng đợi…) không phải sửa service; chấm C2 bằng cách tìm `req`, `res`, mã HTTP trong `src/backend/services/` ra rỗng.
+- **Ảnh hưởng:** `src/backend/errors/AppError.js`, `src/backend/middlewares/*`, `src/backend/services/*`, `tests/*`. Mã lỗi (`code`) và JSON trả về giữ nguyên.
+
+### TD-13 Bổ sung CRUD khách hàng và thiết bị (tiêu chí S1) – điều chỉnh TD-09
+
+- **Bối cảnh:** BR6 cấm sửa/xoá phiếu nên TD-09 không làm `PUT`/`DELETE` phiếu; như vậy chưa có thực thể nào có CRUD đầy đủ, trong khi S1 yêu cầu ≥ 2 thực thể.
+- **Quyết định:** Thêm `MasterDataService` với CRUD cho `customer` và `device` (S1, S2 trong API contract), màn hình M4 *Khách hàng & thiết bị*. Ràng buộc xoá: khách còn thiết bị → 409 `CUSTOMER_HAS_DEVICES`; thiết bị đã có phiếu → 409 `DEVICE_HAS_TICKETS`. Chỉ Nhân viên tiếp nhận được ghi; Điều phối viên được đọc.
+- **Lý do:** Đủ S1 mà không phá BR6; ràng buộc xoá bảo vệ khoá ngoại và lịch sử phiếu.
+- **Ảnh hưởng:** `src/backend/services/masterDataService.js`, repository customer/device, `src/backend/controllers/customerController.js`, `src/frontend/pages/masterData.js`. Không đổi DDL.
+
+### TD-14 Làm lại giao diện và trả `503` khi mất CSDL
+
+- **Quyết định:** Viết lại `src/frontend/styles.css` (nhận diện Mekong Mobile, font Be Vietnam Pro đóng gói trong `src/frontend/fonts/` theo giấy phép OFL, không gọi mạng ngoài), màu riêng cho từng trạng thái phiếu, thanh điều hướng, bố cục dùng được trên điện thoại. `errorHandler` trả `503 DB_UNAVAILABLE` khi mất kết nối CSDL thay vì `500` chung.
+- **Lý do:** Giao diện buổi 10 cố ý tối giản; buổi 12 chấm màn hình có ba trạng thái rõ ràng. Mã id/lớp CSS dùng bởi kiểm thử giữ nguyên.
+- **Ảnh hưởng:** `src/frontend/*`, `src/backend/middlewares/errorHandler.js`.
+
+### TD-15 Tách `src/` thành `src/backend` và `src/frontend`
+
+- **Quyết định:** Mã máy chủ (app, config, middlewares, controllers, services, repositories, errors) nằm trong `src/backend/`; giao diện nằm trong `src/frontend/`. `npm start` chạy `src/backend/server.js`; Express phục vụ `src/frontend` bằng `express.static`.
+- **Lý do:** Ranh giới giao diện ↔ máy chủ nhìn thấy ngay từ cây thư mục; bốn lớp bên trong backend giữ nguyên.
+- **Ảnh hưởng:** Chỉ đổi đường dẫn (`package.json`, `src/backend/app.js`, `require` trong `tests/` và `scripts/`, tài liệu). Không đổi mã nghiệp vụ, API hay CSDL.

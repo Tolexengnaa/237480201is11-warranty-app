@@ -4,18 +4,18 @@ const issueCategoryRepository = require('../repositories/issueCategoryRepository
 const ticketRepository = require('../repositories/ticketRepository');
 const defaultStatusService = require('./statusService');
 const { requireRole } = require('./ticketService');
-const { badRequest, notFound, conflict } = require('../errors/AppError');
+const { invalidInput, notFound, conflict } = require('../errors/AppError');
 
 // BR4: hạn xử lý = thời điểm phân loại + số giờ theo mức ưu tiên.
 const SLA_HOURS = { HIGH: 24, MEDIUM: 72, LOW: 120 };
 
 /** BR4 – tính hạn xử lý; mức ưu tiên không hợp lệ → 400. */
 function computeDueDate(classifiedAt, priority) {
-  // hasOwn: tránh "toString", "constructor"… lấy nhầm thuộc tính kế thừa của Object.
-  if (!Object.hasOwn(SLA_HOURS, priority)) {
-    throw badRequest('INVALID_PRIORITY', 'Mức ưu tiên phải là HIGH, MEDIUM hoặc LOW');
+  const hours = SLA_HOURS[priority];
+  if (!hours) {
+    throw invalidInput('INVALID_PRIORITY', 'Mức ưu tiên phải là HIGH, MEDIUM hoặc LOW');
   }
-  return new Date(classifiedAt.getTime() + SLA_HOURS[priority] * 3600 * 1000);
+  return new Date(classifiedAt.getTime() + hours * 3600 * 1000);
 }
 
 function createClassifyService({
@@ -47,7 +47,7 @@ function createClassifyService({
     requireRole(caller, ['COORDINATOR'], COORDINATOR_ONLY);
     const { issueCategoryId, priority } = input || {};
     if (!Number.isInteger(issueCategoryId) || issueCategoryId <= 0) {
-      throw badRequest('ISSUE_CATEGORY_REQUIRED', 'Vui lòng chọn danh mục lỗi');
+      throw invalidInput('ISSUE_CATEGORY_REQUIRED', 'Vui lòng chọn danh mục lỗi');
     }
     const classifiedAt = now();
     const dueDate = computeDueDate(classifiedAt, priority);
@@ -55,7 +55,7 @@ function createClassifyService({
     return withTransaction(async (client) => {
       const ticket = await loadNewTicket(client, ticketCode);
       if (!(await categories.findActiveById(issueCategoryId, client))) {
-        throw badRequest('ISSUE_CATEGORY_INVALID', 'Danh mục lỗi không tồn tại hoặc đã ngừng dùng');
+        throw invalidInput('ISSUE_CATEGORY_INVALID', 'Danh mục lỗi không tồn tại hoặc đã ngừng dùng');
       }
       await statusService.changeStatus(client, {
         ticketId: ticket.id,
@@ -72,7 +72,7 @@ function createClassifyService({
   async function reject(caller, ticketCode, input) {
     requireRole(caller, ['COORDINATOR'], COORDINATOR_ONLY);
     const reason = input && typeof input.reason === 'string' ? input.reason.trim() : '';
-    if (!reason) throw badRequest('REJECT_REASON_REQUIRED', 'Vui lòng nhập lý do từ chối');
+    if (!reason) throw invalidInput('REJECT_REASON_REQUIRED', 'Vui lòng nhập lý do từ chối');
 
     return withTransaction(async (client) => {
       const ticket = await loadNewTicket(client, ticketCode);

@@ -49,6 +49,8 @@
 | T6 | `POST /api/tickets/{ticketCode}/assign` | Điều phối viên | UC03 | FR3 |
 | T7 | `POST /api/tickets/{ticketCode}/start` | Kỹ thuật viên được phân công | UC05 | FR5 |
 | T8 | `GET /api/tickets/{ticketCode}/history` | Cả ba vai trò | UC06 | FR5 |
+| S1 | `GET /api/customers` (không có `phone`) · `GET /api/customers/{id}` · `PUT /api/customers/{id}` · `DELETE /api/customers/{id}` | Đọc: Nhân viên tiếp nhận, Điều phối viên · Ghi: Nhân viên tiếp nhận | UC07 | — |
+| S2 | `GET /api/devices` (không có `imei`) · `POST /api/devices` · `GET/PUT/DELETE /api/devices/{id}` | Đọc: Nhân viên tiếp nhận, Điều phối viên · Ghi: Nhân viên tiếp nhận | UC01 | — |
 | L1 | `GET /api/issue-categories` | Điều phối viên | UC02 | FR2 |
 | L2 | `GET /api/technicians?active=true` | Điều phối viên | UC03 | FR3 |
 
@@ -174,6 +176,27 @@ Response **200**: `[ { "id": 1, "code": "SCREEN", "name": "Màn hình" } ]` – 
 Response **200**: `[ { "id": 3, "fullName": "Phạm Huy", "openTicketCount": 3 } ]` – `openTicketCount` tính bằng `COUNT` phiếu `ASSIGNED` + `IN_PROGRESS`, không lưu. Danh sách rỗng → giao diện hiển thị *"Chưa có kỹ thuật viên khả dụng"* (UC03-2a).
 
 ---
+
+### S1. CRUD khách hàng (bổ sung buổi 12)
+
+- `GET /api/customers?q=&limit=&offset=` → `200` mảng `{ id, fullName, phone, deviceCount }` (`limit` 1–200, mặc định 50; sai → `400 INVALID_PAGING`).
+- `GET /api/customers/{id}` → `200` · `404 CUSTOMER_NOT_FOUND` · `400 INVALID_CUSTOMER_ID`.
+- `PUT /api/customers/{id}` body `{ fullName, phone }` → `200` · `400 FULL_NAME_REQUIRED | FULL_NAME_TOO_LONG | INVALID_PHONE` · `409 PHONE_EXISTS`.
+- `DELETE /api/customers/{id}` → `204` · `409 CUSTOMER_HAS_DEVICES` (khách còn thiết bị thì không xoá).
+- Tạo khách hàng vẫn dùng C2 (`POST /api/customers`).
+
+### S2. CRUD thiết bị (bổ sung buổi 12)
+
+- `GET /api/devices?customerId=&limit=&offset=` → `200` mảng `{ id, customerId, imei, model, warrantyEndDate }`.
+- `POST /api/devices` body `{ customerId, imei, model, warrantyEndDate }` → `201` · `400 INVALID_IMEI | MODEL_REQUIRED | INVALID_WARRANTY_DATE` · `404 CUSTOMER_NOT_FOUND` · `409 IMEI_EXISTS`.
+- `GET /api/devices/{id}` → `200` · `404 DEVICE_NOT_FOUND`.
+- `PUT /api/devices/{id}` body `{ model, warrantyEndDate }` (IMEI và chủ sở hữu không đổi) → `200`.
+- `DELETE /api/devices/{id}` → `204` · `409 DEVICE_HAS_TICKETS` (BR6: giữ lịch sử phiếu).
+- Quyền (NFR4): Điều phối viên chỉ đọc; Kỹ thuật viên không truy cập → `403 FORBIDDEN_ROLE`.
+
+### Mã lỗi hệ thống
+
+Ngoài các mã nghiệp vụ trên: `503 DB_UNAVAILABLE` khi không kết nối được PostgreSQL (suy giảm có kiểm soát, giao diện hiện thông báo và nút *Thử lại*); `400 INVALID_JSON`; `500 INTERNAL_ERROR` cho lỗi không lường trước (không lộ chi tiết nội bộ).
 
 ## 4. Ngoài phạm vi
 

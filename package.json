@@ -1,6 +1,6 @@
 {
   "name": "237480201is11-warranty-app",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Smart CRM – Mekong Mobile · Luồng L2: Tiếp nhận và phân loại yêu cầu bảo hành",
   "main": "src/backend/server.js",
   "private": true,

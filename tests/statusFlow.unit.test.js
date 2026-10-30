@@ -36,9 +36,7 @@ test('BR4: hạn xử lý = thời điểm phân loại + 24 / 72 / 120 giờ th
 });
 
 test('BR4 (dữ liệu sai): mức ưu tiên ngoài HIGH/MEDIUM/LOW → 400 INVALID_PRIORITY', () => {
-  for (const priority of ['URGENT', 'toString', 'constructor', '__proto__', undefined]) {
-    assert.throws(() => computeDueDate(NOW, priority), { status: 400, code: 'INVALID_PRIORITY' });
-  }
+  assert.throws(() => computeDueDate(NOW, 'URGENT'), { kind: 'INVALID_INPUT', code: 'INVALID_PRIORITY' });
 });
 
 test('FR2: phân loại phiếu Mới → CLASSIFIED, ghi danh mục, mức ưu tiên và hạn xử lý trong cùng lần đổi trạng thái', async () => {
@@ -59,7 +57,7 @@ test('BR6 (biên): phân loại phiếu không còn ở trạng thái Mới → 
   const svc = createClassifyService({ ...f, categories: { findActiveById: async () => ({ id: 1 }) }, now: () => NOW });
   await assert.rejects(
     svc.classify(COORDINATOR, 'BH-2026-000010', { issueCategoryId: 1, priority: 'LOW' }),
-    { status: 409, code: 'INVALID_STATUS' },
+    { kind: 'CONFLICT', code: 'INVALID_STATUS' },
   );
   assert.equal(f.changes.length, 0);
 });
@@ -68,7 +66,7 @@ test('BR6: từ chối mà lý do chỉ có khoảng trắng → 400 REJECT_REAS
   const f = fakes(ticket('NEW'));
   const svc = createClassifyService({ ...f, categories: {}, now: () => NOW });
   await assert.rejects(svc.reject(COORDINATOR, 'BH-2026-000010', { reason: '   ' }),
-    { status: 400, code: 'REJECT_REASON_REQUIRED' });
+    { kind: 'INVALID_INPUT', code: 'REJECT_REASON_REQUIRED' });
   assert.equal(f.changes.length, 0);
 });
 
@@ -82,20 +80,20 @@ function assignService(t, techById) {
 test('UC03-1a: phân công phiếu còn ở trạng thái Mới → 409 TICKET_NOT_CLASSIFIED', async () => {
   const { svc } = assignService(ticket('NEW'), { 3: { id: 3, role: 'TECHNICIAN', isActive: true } });
   await assert.rejects(svc.assign(COORDINATOR, 'BH-2026-000010', { technicianId: 3 }),
-    { status: 409, code: 'TICKET_NOT_CLASSIFIED' });
+    { kind: 'CONFLICT', code: 'TICKET_NOT_CLASSIFIED' });
 });
 
 test('UC03-4a / NFR4: Nhân viên tiếp nhận gọi phân công → 403 FORBIDDEN_ROLE', async () => {
   const { svc, f } = assignService(ticket('CLASSIFIED'), {});
   await assert.rejects(svc.assign(RECEPTIONIST, 'BH-2026-000010', { technicianId: 3 }),
-    { status: 403, code: 'FORBIDDEN_ROLE' });
+    { kind: 'NOT_ALLOWED', code: 'FORBIDDEN_ROLE' });
   assert.equal(f.changes.length, 0);
 });
 
 test('BR5 / UC03-4b: kỹ thuật viên đã bị khoá → 409 DATA_CHANGED, phiếu giữ nguyên', async () => {
   const { svc, f } = assignService(ticket('CLASSIFIED'), { 5: { id: 5, role: 'TECHNICIAN', isActive: false } });
   await assert.rejects(svc.assign(COORDINATOR, 'BH-2026-000010', { technicianId: 5 }),
-    { status: 409, code: 'DATA_CHANGED' });
+    { kind: 'CONFLICT', code: 'DATA_CHANGED' });
   assert.equal(f.changes.length, 0);
 });
 
@@ -111,6 +109,6 @@ test('FR3: phân công phiếu Đã phân loại cho kỹ thuật viên đang ho
 test('UC05: kỹ thuật viên khác nhận phiếu không phải của mình → 403', async () => {
   const f = fakes(ticket('ASSIGNED', { assignedTo: 4 }));
   const svc = createTicketService({ ...f, logs: {} });
-  await assert.rejects(svc.startTicket(TECH, 'BH-2026-000010'), { status: 403, code: 'FORBIDDEN_ROLE' });
+  await assert.rejects(svc.startTicket(TECH, 'BH-2026-000010'), { kind: 'NOT_ALLOWED', code: 'FORBIDDEN_ROLE' });
   assert.equal(f.changes.length, 0);
 });

@@ -2,7 +2,7 @@
 // Mọi hàm nhận `client` của giao dịch đang mở để trạng thái và lịch sử cùng commit hoặc cùng rollback.
 const ticketRepository = require('../repositories/ticketRepository');
 const statusLogRepository = require('../repositories/statusLogRepository');
-const { conflict, badRequest } = require('../errors/AppError');
+const { conflict, invalidInput } = require('../errors/AppError');
 
 // BR6: Mới → Đã phân loại → Đã phân công → Đang xử lý, không quay lui; Từ chối chỉ từ Mới.
 const TRANSITIONS = {
@@ -29,7 +29,7 @@ function createStatusService({ tickets = ticketRepository, logs = statusLogRepos
       throw conflict('INVALID_STATUS', `Không thể chuyển phiếu từ ${fromStatus} sang ${toStatus}`);
     }
     if (toStatus === 'REJECTED' && !(note && note.trim())) {
-      throw badRequest('REJECT_REASON_REQUIRED', 'Vui lòng nhập lý do từ chối');
+      throw invalidInput('REJECT_REASON_REQUIRED', 'Vui lòng nhập lý do từ chối');
     }
     const updated = await tickets.updateStatus({ ticketId, fromStatus, toStatus, fields }, client);
     if (!updated) {
