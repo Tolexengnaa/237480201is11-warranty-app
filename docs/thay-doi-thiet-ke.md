@@ -122,3 +122,23 @@ Luồng L2 – Tiếp nhận và phân loại yêu cầu bảo hành · Track SE
 - **Quyết định:** Mã máy chủ (app, config, middlewares, controllers, services, repositories, errors) nằm trong `src/backend/`; giao diện nằm trong `src/frontend/`. `npm start` chạy `src/backend/server.js`; Express phục vụ `src/frontend` bằng `express.static`.
 - **Lý do:** Ranh giới giao diện ↔ máy chủ nhìn thấy ngay từ cây thư mục; bốn lớp bên trong backend giữ nguyên.
 - **Ảnh hưởng:** Chỉ đổi đường dẫn (`package.json`, `src/backend/app.js`, `require` trong `tests/` và `scripts/`, tài liệu). Không đổi mã nghiệp vụ, API hay CSDL.
+
+---
+
+## Sau phản hồi Bài tập 2 (buổi 14, ngày 06/11/2026)
+
+GV xác nhận bảng 4.2 **đạt đủ các mục chung và mục theo track SE**. Hai điểm cần khắc phục đều thuộc quy trình làm việc, không thuộc mã nguồn; cả hai đều SỬA từ Bài tập 3.
+
+### TD-16 Commit nhỏ, đều đặn, mỗi commit một việc
+
+- **Phản hồi của GV:** Lịch sử commit ít và dồn trong 4 ngày cuối trước hạn nộp BT2.
+- **Quyết định:** SỬA
+- **Lý do:** Lịch sử commit là minh chứng của CLO5 và được chấm ở tiêu chí 4. Ở BT2 em làm phần lớn trên máy rồi chép cả thư mục vào repo và commit gộp, nên lịch sử không cho thấy tiến độ thật và khó lần lại khi có lỗi. Không viết lại lịch sử cũ (`rebase`/`force push`) vì như vậy là sửa minh chứng.
+- **Ảnh hưởng:** Từ buổi 14: mỗi thành phần BT3 (test plan, từng test case kèm ảnh, từng bug, Dockerfile/compose, deployment guide, API docs, checklist bảo mật) là một commit riêng theo Conventional Commits (`docs(test): …`, `fix(ticket): … (BUG-xx)`, `build(docker): …`), commit và push trong ngày làm, rải đều từ buổi 13 đến buổi 16; chỉ `git add` đúng tệp của việc đó, không `git add .`. Không đổi mã nghiệp vụ, API hay CSDL.
+
+### TD-17 Đặt tên tệp PDF đúng quy ước
+
+- **Phản hồi của GV:** Tên tệp PDF nộp BT2 chưa đúng quy ước `BT2_237480201IS11_MINGBOUPPHAXAYKHAM.pdf`.
+- **Quyết định:** SỬA
+- **Lý do:** Sai tên tệp là lỗi hình thức bị trừ điểm ở tiêu chí 1 và hoàn toàn tránh được; GV lọc bài theo tên tệp.
+- **Ảnh hưởng:** BT3 nộp đúng một tệp `BT3_237480201is11_MingbouphaXaykham.pdf` (không dấu, không khoảng trắng). Trước khi nộp: kiểm lại tên tệp, mở lại tệp đã tải lên E-learning để chắc đọc được, và kiểm trang bìa có link repo + tag `v1.0`. Không ảnh hưởng mã nguồn.
