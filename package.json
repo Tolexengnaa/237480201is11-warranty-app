@@ -12,8 +12,9 @@
     "dev": "node --watch src/backend/server.js",
     "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seed.js",
-    "test": "node --test tests/*.unit.test.js",
-    "test:db": "node --test tests/*.db.test.js"
+    "test": "node --test --test-concurrency=1 \"tests/*.test.js\"",
+    "test:db": "node --test --test-concurrency=1 tests/*.db.test.js",
+    "test:unit": "node --test tests/*.unit.test.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
