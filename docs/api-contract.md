@@ -109,6 +109,7 @@ Lỗi: **400** `ISSUE_DESCRIPTION_REQUIRED` – *"Vui lòng nhập mô tả lỗ
 ### T2. `GET /api/tickets` – Danh sách phiếu bảo hành
 
 Query: `status`, `priority`, `dueFrom`, `dueTo`, `q` (mã phiếu hoặc số điện thoại), `page`, `size`.
+`dueFrom` / `dueTo`: ngày `YYYY-MM-DD` (hiểu theo giờ Việt Nam; `dueFrom` từ 00:00, `dueTo` đến hết 23:59:59 của ngày đó) hoặc thời gian ISO 8601 **có múi giờ**. Giá trị khác → **400** `INVALID_FILTER`.
 Response **200**:
 
 ```json

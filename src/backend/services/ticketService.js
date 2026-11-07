@@ -7,7 +7,7 @@ const ticketRepository = require('../repositories/ticketRepository');
 const statusLogRepository = require('../repositories/statusLogRepository');
 const defaultStatusService = require('./statusService');
 const { invalidInput, notAllowed, notFound, conflict } = require('../errors/AppError');
-const { isCalendarDate, MAX_LEN } = require('./validators');
+const { isCalendarDate, parseDueBound, MAX_LEN } = require('./validators');
 
 const PHONE_RE = /^[0-9]{10}$/;
 const IMEI_RE = /^[0-9]{15}$/;
@@ -155,14 +155,18 @@ function createTicketService({
     if (query.priority && !PRIORITIES.includes(query.priority)) {
       throw invalidInput('INVALID_FILTER', `priority phải là một trong ${PRIORITIES.join(', ')}`);
     }
+    const due = {};
     for (const key of ['dueFrom', 'dueTo']) {
-      if (query[key] && Number.isNaN(Date.parse(query[key]))) {
-        throw invalidInput('INVALID_FILTER', `${key} phải là thời gian ISO 8601`);
+      if (!query[key]) continue;
+      due[key] = parseDueBound(query[key], { endOfDay: key === 'dueTo' });
+      if (!due[key]) {
+        throw invalidInput('INVALID_FILTER',
+          `${key} phải là ngày YYYY-MM-DD hoặc thời gian ISO 8601 có múi giờ (ví dụ 2026-11-07T08:00:00+07:00)`);
       }
     }
 
     const filters = {
-      status: query.status, priority: query.priority, dueFrom: query.dueFrom, dueTo: query.dueTo,
+      status: query.status, priority: query.priority, dueFrom: due.dueFrom, dueTo: due.dueTo,
       q: query.q ? String(query.q).trim() : undefined, page, size,
       // Kỹ thuật viên chỉ thấy phiếu được phân công cho chính mình.
       assignedTo: caller.role === 'TECHNICIAN' ? caller.id : undefined,
