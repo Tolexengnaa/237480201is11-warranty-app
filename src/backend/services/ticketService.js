@@ -7,10 +7,10 @@ const ticketRepository = require('../repositories/ticketRepository');
 const statusLogRepository = require('../repositories/statusLogRepository');
 const defaultStatusService = require('./statusService');
 const { invalidInput, notAllowed, notFound, conflict } = require('../errors/AppError');
+const { isCalendarDate, MAX_LEN } = require('./validators');
 
 const PHONE_RE = /^[0-9]{10}$/;
 const IMEI_RE = /^[0-9]{15}$/;
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const STATUSES = ['NEW', 'CLASSIFIED', 'ASSIGNED', 'IN_PROGRESS', 'REJECTED'];
 const PRIORITIES = ['HIGH', 'MEDIUM', 'LOW'];
 
@@ -103,13 +103,15 @@ function createTicketService({
       let device = await devices.findByImei(imei, client);
       if (!device) {
         // UC01-5a: thiết bị mới → bắt buộc Model và Ngày hết hạn bảo hành.
-        if (!model || !String(model).trim()) throw invalidInput('MODEL_REQUIRED', 'Vui lòng nhập model thiết bị');
-        if (!DATE_RE.test(warrantyEndDate || '') || Number.isNaN(Date.parse(warrantyEndDate))) {
-          throw invalidInput('WARRANTY_END_DATE_REQUIRED', 'Vui lòng nhập ngày hết hạn bảo hành (YYYY-MM-DD)');
+        const cleanModel = typeof model === 'string' ? model.trim() : '';
+        if (!cleanModel) throw invalidInput('MODEL_REQUIRED', 'Vui lòng nhập model thiết bị');
+        if (cleanModel.length > MAX_LEN.model) {
+          throw invalidInput('MODEL_TOO_LONG', `Model thiết bị tối đa ${MAX_LEN.model} ký tự`);
         }
-        device = await devices.insert(
-          { customerId, imei, model: String(model).trim(), warrantyEndDate }, client,
-        );
+        if (!isCalendarDate(warrantyEndDate)) {
+          throw invalidInput('WARRANTY_END_DATE_REQUIRED', 'Vui lòng nhập ngày hết hạn bảo hành có thật (YYYY-MM-DD)');
+        }
+        device = await devices.insert({ customerId, imei, model: cleanModel, warrantyEndDate }, client);
       } else if (device.customerId !== customerId) {
         // BR1: phiếu gắn với đúng một khách hàng và một thiết bị của chính khách đó.
         throw conflict('DEVICE_OWNER_MISMATCH', 'Thiết bị này đã đăng ký cho khách hàng khác');

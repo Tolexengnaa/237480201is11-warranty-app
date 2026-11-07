@@ -104,7 +104,7 @@ Response **201**:
 ```
 
 Xử lý: sinh mã phiếu; lưu `ticket` với `status = NEW`; ghi `ticket_status_log` (`null → NEW`) trong cùng một giao dịch (NFR5).
-Lỗi: **400** `ISSUE_DESCRIPTION_REQUIRED` – *"Vui lòng nhập mô tả lỗi"* (UC01-7a), `INVALID_IMEI`, `MODEL_REQUIRED` · **403** người gọi không phải Nhân viên tiếp nhận · **409** `TICKET_OPEN_EXISTS` (BR2, UC01-5b).
+Lỗi: **400** `ISSUE_DESCRIPTION_REQUIRED` – *"Vui lòng nhập mô tả lỗi"* (UC01-7a), `INVALID_IMEI`, `MODEL_REQUIRED`, `MODEL_TOO_LONG` (> 100 ký tự), `WARRANTY_END_DATE_REQUIRED` (thiếu hoặc ngày không có thật, ví dụ 2026-02-30) · **404** `CUSTOMER_NOT_FOUND` · **409** `DEVICE_OWNER_MISMATCH` (BR1) · **403** người gọi không phải Nhân viên tiếp nhận · **409** `TICKET_OPEN_EXISTS` (BR2, UC01-5b).
 
 ### T2. `GET /api/tickets` – Danh sách phiếu bảo hành
 

@@ -4,10 +4,10 @@
 const customerRepository = require('../repositories/customerRepository');
 const deviceRepository = require('../repositories/deviceRepository');
 const { invalidInput, notAllowed, notFound, conflict } = require('../errors/AppError');
+const { isCalendarDate, MAX_LEN } = require('./validators');
 
 const PHONE_RE = /^[0-9]{10}$/;
 const IMEI_RE = /^[0-9]{15}$/;
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const READ_ROLES = ['RECEPTIONIST', 'COORDINATOR'];
 const WRITE_ROLES = ['RECEPTIONIST'];
 
@@ -26,7 +26,7 @@ function toId(value, code, label) {
 function cleanName(fullName) {
   const name = typeof fullName === 'string' ? fullName.trim() : '';
   if (!name) throw invalidInput('FULL_NAME_REQUIRED', 'Vui lòng nhập họ tên khách hàng');
-  if (name.length > 100) throw invalidInput('FULL_NAME_TOO_LONG', 'Họ tên tối đa 100 ký tự');
+  if (name.length > MAX_LEN.fullName) throw invalidInput('FULL_NAME_TOO_LONG', `Họ tên tối đa ${MAX_LEN.fullName} ký tự`);
   return name;
 }
 
@@ -38,14 +38,12 @@ function cleanPhone(phone) {
 function cleanModel(model) {
   const m = typeof model === 'string' ? model.trim() : '';
   if (!m) throw invalidInput('MODEL_REQUIRED', 'Vui lòng nhập mẫu thiết bị');
-  if (m.length > 100) throw invalidInput('MODEL_TOO_LONG', 'Mẫu thiết bị tối đa 100 ký tự');
+  if (m.length > MAX_LEN.model) throw invalidInput('MODEL_TOO_LONG', `Mẫu thiết bị tối đa ${MAX_LEN.model} ký tự`);
   return m;
 }
 
 function cleanDate(value) {
-  const ok = DATE_RE.test(value || '') && !Number.isNaN(Date.parse(`${value}T00:00:00Z`))
-    && new Date(`${value}T00:00:00Z`).toISOString().startsWith(value);
-  if (!ok) throw invalidInput('INVALID_WARRANTY_DATE', 'Ngày hết hạn bảo hành phải có dạng YYYY-MM-DD');
+  if (!isCalendarDate(value)) throw invalidInput('INVALID_WARRANTY_DATE', 'Ngày hết hạn bảo hành phải có dạng YYYY-MM-DD');
   return value;
 }
 
