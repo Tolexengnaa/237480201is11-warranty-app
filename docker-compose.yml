@@ -27,7 +27,9 @@ services:
       DB_USER: smartcrm
       DB_PASSWORD: smartcrm
       APP_PORT: 3000
-      SECRET_KEY: doi-khoa-bi-mat-nay-khi-trien-khai   # chỉ dùng để chạy thử; đổi khi triển khai thật
+      # SECRET_KEY không ghi ở đây: để trống thì ứng dụng tự sinh khoá ngẫu nhiên (BUG-06).
+      # Muốn đặt khoá riêng: tạo tệp .env cạnh tệp này với SECRET_KEY=<≥ 32 ký tự>.
+      SECRET_KEY: ${SECRET_KEY:-}
       TOKEN_EXPIRES_IN: 8h
     ports:
       - "3000:3000"

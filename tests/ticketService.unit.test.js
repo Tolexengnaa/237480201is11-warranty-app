@@ -2,7 +2,6 @@
 // Chạy: npm test
 process.env.DB_NAME ||= 'test';
 process.env.DB_USER ||= 'test';
-process.env.SECRET_KEY ||= 'test';
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
