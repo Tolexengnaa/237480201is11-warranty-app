@@ -14,7 +14,8 @@
     "seed": "node scripts/seed.js",
     "test": "node --test --test-concurrency=1 \"tests/*.test.js\"",
     "test:db": "node --test --test-concurrency=1 tests/*.db.test.js",
-    "test:unit": "node --test tests/*.unit.test.js"
+    "test:unit": "node --test tests/*.unit.test.js",
+    "test:tc": "node --test --test-reporter=spec tests/api.db.test.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

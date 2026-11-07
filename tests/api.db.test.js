@@ -99,7 +99,7 @@ test.after(async () => {
 
 // ---------- 1. Luồng đúng – mỗi quy tắc ít nhất một test ----------
 
-test('TC-01 [BR1] tạo phiếu cho thiết bị của chính khách hàng → 201, trạng thái NEW, thêm 1 phiếu và 1 dòng lịch sử', async () => {
+test('TC-01 [BR1] tạo phiếu cho thiết bị của chính khách hàng → 201, trạng thái NEW, thêm 1 phiếu và 1 dòng lịch sử', async (t) => {
   const f = await fixture();
   const before = await count('SELECT count(*) n FROM ticket WHERE device_id = $1', [f.deviceId]);
   const code = await createTicket(f);
@@ -110,9 +110,10 @@ test('TC-01 [BR1] tạo phiếu cho thiết bị của chính khách hàng → 2
   assert.equal(h.body.length, 1);
   assert.equal(h.body[0].fromStatus, null);
   assert.equal(h.body[0].toStatus, 'NEW');
+  t.diagnostic(`thực tế: 201 ${code}, trạng thái NEW; phiếu của thiết bị ${before} → ${after}; lịch sử ${h.body.length} dòng (null → NEW)`);
 });
 
-test('TC-02 [BR2] thiết bị đang có phiếu chưa đóng, tạo phiếu thứ hai → 409 TICKET_OPEN_EXISTS, không thêm phiếu', async () => {
+test('TC-02 [BR2] thiết bị đang có phiếu chưa đóng, tạo phiếu thứ hai → 409 TICKET_OPEN_EXISTS, không thêm phiếu', async (t) => {
   const f = await fixture();
   const first = await createTicket(f);
   const before = await count('SELECT count(*) n FROM ticket WHERE device_id = $1', [f.deviceId]);
@@ -122,30 +123,34 @@ test('TC-02 [BR2] thiết bị đang có phiếu chưa đóng, tạo phiếu th�
   assert.equal(r.status, 409);
   assert.equal(r.body.code, 'TICKET_OPEN_EXISTS');
   assert.equal(r.body.details.openTicketCode, first);
-  assert.equal(await count('SELECT count(*) n FROM ticket WHERE device_id = $1', [f.deviceId]), before);
+  const after = await count('SELECT count(*) n FROM ticket WHERE device_id = $1', [f.deviceId]);
+  assert.equal(after, before);
+  t.diagnostic(`thực tế: ${r.status} ${r.body.code}, openTicketCode=${r.body.details.openTicketCode}; phiếu của thiết bị ${before} → ${after}`);
 });
 
 // ---------- 2. Giá trị biên – BR3, hai phía của cùng ranh giới ----------
 
-test('TC-03 [BR3 biên] ngày hết hạn bảo hành = hôm nay → còn bảo hành (outOfWarranty = false)', async () => {
+test('TC-03 [BR3 biên] ngày hết hạn bảo hành = hôm nay → còn bảo hành (outOfWarranty = false)', async (t) => {
   const f = await fixture({ warrantyEndDate: vnDay(0) });
   const r = await call('POST', '/api/tickets', {
     as: 'tn1', body: { customerId: f.customerId, imei: f.imei, issueDescription: 'Biên hôm nay' },
   });
   assert.equal(r.status, 201);
   assert.equal(r.body.outOfWarranty, false);
+  t.diagnostic(`thực tế: hết hạn ${vnDay(0)} (hôm nay) → ${r.status}, outOfWarranty=${r.body.outOfWarranty}`);
 });
 
-test('TC-04 [BR3 biên] ngày hết hạn bảo hành = hôm qua → hết bảo hành (outOfWarranty = true)', async () => {
+test('TC-04 [BR3 biên] ngày hết hạn bảo hành = hôm qua → hết bảo hành (outOfWarranty = true)', async (t) => {
   const f = await fixture({ warrantyEndDate: vnDay(-1) });
   const r = await call('POST', '/api/tickets', {
     as: 'tn1', body: { customerId: f.customerId, imei: f.imei, issueDescription: 'Biên hôm qua' },
   });
   assert.equal(r.status, 201);
   assert.equal(r.body.outOfWarranty, true);
+  t.diagnostic(`thực tế: hết hạn ${vnDay(-1)} (hôm qua) → ${r.status}, outOfWarranty=${r.body.outOfWarranty}`);
 });
 
-test('TC-05 [BR4] phân loại mức HIGH → hạn xử lý = thời điểm phân loại + 24 giờ', async () => {
+test('TC-05 [BR4] phân loại mức HIGH → hạn xử lý = thời điểm phân loại + 24 giờ', async (t) => {
   const f = await fixture();
   const code = await createTicket(f);
   const t0 = Date.now();
@@ -159,21 +164,23 @@ test('TC-05 [BR4] phân loại mức HIGH → hạn xử lý = thời điểm ph
   const H24 = 24 * 3600 * 1000;
   assert.ok(due >= Math.floor((t0 + H24) / 1000) * 1000 && due <= t1 + H24,
     `dueDate ${r.body.dueDate} không nằm trong [phân loại + 24h]`);
+  t.diagnostic(`thực tế: 200 CLASSIFIED; gọi lúc ${new Date(t0).toISOString()}, dueDate=${r.body.dueDate} (lệch ${((due - t0) / 3600000).toFixed(3)} giờ)`);
 });
 
-test('TC-06 [BR5] phân công cho kỹ thuật viên đã khoá (kt3) → 409 DATA_CHANGED, phiếu vẫn CLASSIFIED', async () => {
+test('TC-06 [BR5] phân công cho kỹ thuật viên đã khoá (kt3) → 409 DATA_CHANGED, phiếu vẫn CLASSIFIED', async (t) => {
   const f = await fixture();
   const code = await createTicket(f);
   await call('POST', `/api/tickets/${code}/classify`, { as: 'dp1', body: { issueCategoryId: 1, priority: 'LOW' } });
   const r = await call('POST', `/api/tickets/${code}/assign`, { as: 'dp1', body: { technicianId: staffId.kt3 } });
   assert.equal(r.status, 409);
   assert.equal(r.body.code, 'DATA_CHANGED');
-  const t = await call('GET', `/api/tickets/${code}`, { as: 'dp1' });
-  assert.equal(t.body.status, 'CLASSIFIED');
-  assert.equal(t.body.technician, null);
+  const tk = await call('GET', `/api/tickets/${code}`, { as: 'dp1' });
+  assert.equal(tk.body.status, 'CLASSIFIED');
+  assert.equal(tk.body.technician, null);
+  t.diagnostic(`thực tế: ${r.status} ${r.body.code} "${r.body.message}"; phiếu vẫn ${tk.body.status}, technician=${tk.body.technician}`);
 });
 
-test('TC-07 [BR6] từ chối phiếu đã phân loại (không quay lui) → 409 INVALID_STATUS, lịch sử không thêm dòng', async () => {
+test('TC-07 [BR6] từ chối phiếu đã phân loại (không quay lui) → 409 INVALID_STATUS, lịch sử không thêm dòng', async (t) => {
   const f = await fixture();
   const code = await createTicket(f);
   await call('POST', `/api/tickets/${code}/classify`, { as: 'dp1', body: { issueCategoryId: 1, priority: 'MEDIUM' } });
@@ -184,11 +191,12 @@ test('TC-07 [BR6] từ chối phiếu đã phân loại (không quay lui) → 40
   assert.match(r.body.message, /trạng thái Mới/);
   const after = (await call('GET', `/api/tickets/${code}/history`, { as: 'dp1' })).body.length;
   assert.equal(after, before);
+  t.diagnostic(`thực tế: ${r.status} ${r.body.code} "${r.body.message}"; lịch sử ${before} → ${after} dòng`);
 });
 
 // ---------- 3. Dữ liệu sai – kiểm cả mã trạng thái và thông báo ----------
 
-test('TC-08 [dữ liệu sai] T1 thiết bị mới với ngày không có thật 2026-02-30 hoặc model 101 ký tự → 400, không tạo thiết bị', async () => {
+test('TC-08 [dữ liệu sai] T1 thiết bị mới với ngày không có thật 2026-02-30 hoặc model 101 ký tự → 400, không tạo thiết bị', async (t) => {
   const c = await pool.query(
     "INSERT INTO customer (full_name, phone) VALUES ('Khách kiểm thử BT3', $1) RETURNING id", [`${PHONE_PREFIX}99001`]);
   const customerId = c.rows[0].id;
@@ -209,10 +217,12 @@ test('TC-08 [dữ liệu sai] T1 thiết bị mới với ngày không có thậ
   assert.equal(longModel.status, 400, JSON.stringify(longModel.body));
   assert.equal(longModel.body.code, 'MODEL_TOO_LONG');
 
-  assert.equal(await count(`SELECT count(*) n FROM device WHERE imei LIKE '${IMEI_PREFIX}%'`), devicesBefore);
+  const devicesAfter = await count(`SELECT count(*) n FROM device WHERE imei LIKE '${IMEI_PREFIX}%'`);
+  assert.equal(devicesAfter, devicesBefore);
+  t.diagnostic(`thực tế: 2026-02-30 → ${badDate.status} ${badDate.body.code}; model 101 ký tự → ${longModel.status} ${longModel.body.code}; thiết bị ${devicesBefore} → ${devicesAfter}`);
 });
 
-test('TC-09 [dữ liệu sai] T2 lọc hạn xử lý: dueFrom=1 → 400 INVALID_FILTER; lọc đúng một ngày (dạng M2 gửi) phải gồm phiếu hạn trong ngày đó', async () => {
+test('TC-09 [dữ liệu sai] T2 lọc hạn xử lý: dueFrom=1 → 400 INVALID_FILTER; lọc đúng một ngày (dạng M2 gửi) phải gồm phiếu hạn trong ngày đó', async (t) => {
   const r = await call('GET', '/api/tickets?dueFrom=1', { as: 'dp1' });
   assert.equal(r.status, 400, JSON.stringify(r.body));
   assert.equal(r.body.code, 'INVALID_FILTER');
@@ -227,11 +237,12 @@ test('TC-09 [dữ liệu sai] T2 lọc hạn xử lý: dueFrom=1 → 400 INVALID
   assert.equal(ok.status, 200);
   assert.ok(ok.body.items.some((i) => i.ticketCode === code),
     `Lọc hạn xử lý ${dueDay} → ${dueDay} không thấy phiếu ${code} có hạn ${c.body.dueDate}`);
+  t.diagnostic(`thực tế: dueFrom=1 → ${r.status} ${r.body.code}; lọc ${dueDay} → ${dueDay} thấy ${ok.body.total} phiếu (${code}, hạn ${c.body.dueDate})`);
 });
 
 // ---------- 4. Bảo mật ----------
 
-test('TC-10 [bảo mật A01] kỹ thuật viên kt1 xem phiếu đã phân công cho kt2 → 403, không lộ dữ liệu phiếu', async () => {
+test('TC-10 [bảo mật A01] kỹ thuật viên kt1 xem phiếu đã phân công cho kt2 → 403, không lộ dữ liệu phiếu', async (t) => {
   const f = await fixture();
   const code = await createTicket(f);
   await call('POST', `/api/tickets/${code}/classify`, { as: 'dp1', body: { issueCategoryId: 1, priority: 'HIGH' } });
@@ -247,22 +258,25 @@ test('TC-10 [bảo mật A01] kỹ thuật viên kt1 xem phiếu đã phân côn
   const start = await call('POST', `/api/tickets/${code}/start`, { as: 'kt1' });
   assert.equal(start.status, 403);
   // Đúng chủ sở hữu thì được.
-  assert.equal((await call('GET', `/api/tickets/${code}`, { as: 'kt2' })).status, 200);
+  const own = await call('GET', `/api/tickets/${code}`, { as: 'kt2' });
+  assert.equal(own.status, 200);
+  t.diagnostic(`thực tế: kt1 xem chi tiết → ${detail.status} ${detail.body.code}, lịch sử → ${history.status}, nhận phiếu → ${start.status}; kt2 (được phân công) → ${own.status}`);
 });
 
-test('TC-11 [bảo mật A07] token tự ký bằng khoá bí mật công khai trong repo → 401 INVALID_TOKEN', async () => {
+test('TC-11 [bảo mật A07] token tự ký bằng khoá bí mật công khai trong repo → 401 INVALID_TOKEN', async (t) => {
   // Hai giá trị SECRET_KEY từng nằm công khai trong repo: .env.example và docker-compose.yml (v0.2).
   for (const publicKey of ['your_secret_key', 'doi-khoa-bi-mat-nay-khi-trien-khai']) {
     const forged = jwt.sign({ sub: String(staffId.dp1), role: 'COORDINATOR' }, publicKey);
     const r = await call('GET', '/api/technicians', { bearer: forged });
     assert.equal(r.status, 401, `Token ký bằng "${publicKey}" được chấp nhận: ${JSON.stringify(r.body)}`);
     assert.equal(r.body.code, 'INVALID_TOKEN');
+    t.diagnostic(`thực tế: token ký bằng "${publicKey}" → ${r.status} ${r.body.code}`);
   }
 });
 
 // ---------- 5. Tái lập ----------
 
-test('TC-12 [tái lập] chạy lại migrate + seed lần hai → không lỗi, số bản ghi danh mục không đổi', async () => {
+test('TC-12 [tái lập] chạy lại migrate + seed lần hai → không lỗi, số bản ghi danh mục không đổi', async (t) => {
   const root = path.join(__dirname, '..');
   const snapshot = async () => ({
     migrations: await count('SELECT count(*) n FROM schema_migrations'),
@@ -275,5 +289,7 @@ test('TC-12 [tái lập] chạy lại migrate + seed lần hai → không lỗi,
   for (const script of ['migrate.js', 'seed.js']) {
     execFileSync(process.execPath, [path.join(root, 'scripts', script)], { cwd: root, stdio: 'pipe' });
   }
-  assert.deepEqual(await snapshot(), before);
+  const after = await snapshot();
+  assert.deepEqual(after, before);
+  t.diagnostic(`thực tế: trước ${JSON.stringify(before)} · sau lần chạy thứ hai ${JSON.stringify(after)}`);
 });
