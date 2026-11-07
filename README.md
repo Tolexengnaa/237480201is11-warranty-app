@@ -183,7 +183,10 @@ Thư mục `src/` ánh xạ một–một với sơ đồ kiến trúc (`docs/ar
 ├── db/migrations/            # migration chạy thật: 001, 002…
 ├── scripts/                  # migrate.js, seed.js, demo-api.sh
 ├── tests/                    # *.unit.test.js · *.db.test.js · api.db.test.js (TC-01 → TC-12) – tất cả: npm test
-├── docs/                     # SRS, sơ đồ .drawio, API contract, nhật ký thay đổi, bug log, ảnh kết quả
+├── dataset/                  # mẫu dữ liệu học phần (1.000 phiếu, seed 20260901) – tham khảo, chưa nạp (TD-22)
+├── docs/                     # SRS, sơ đồ .drawio, tài liệu BT3, nhật ký thay đổi, bug log
+│   ├── screenshots/          # ảnh chụp kết quả chạy test, sửa bug, phép thử máy trắng
+│   └── ket-qua/              # log và ảnh các buổi 8, 10, 12; bt3/ = log chạy thật của Bài tập 3
 ├── Dockerfile, docker-compose.yml, .dockerignore
 └── .env.example
 ```
@@ -194,14 +197,31 @@ Thư mục `src/` ánh xạ một–một với sơ đồ kiến trúc (`docs/ar
 
 | Lệnh | Nội dung | Kết quả hiện tại |
 |---|---|---|
-| Lệnh | Nội dung | Kết quả hiện tại |
-|---|---|---|
 | **`npm test`** | **Toàn bộ 49 test bằng một lệnh** (cần CSDL đã migrate + seed) | **49 / 49 pass** |
 | `npm run test:unit` | 34 unit test lớp nghiệp vụ, không cần CSDL | 34 / 34 pass |
 | `npm run test:db` | 3 integration test BR2 + 12 API test TC-01 → TC-12 | 15 / 15 pass |
 | `npm run test:tc` | 12 test case của Test Report, in "thực tế: …" dưới mỗi ca (dùng để chụp ảnh) | 12 / 12 pass |
 
 Kế hoạch và kết quả kiểm thử: `docs/test-plan.md`, `docs/test-report.md`; lỗi đã sửa: `docs/bug-log.md`. `npm run migrate` và `npm run seed` chạy lại nhiều lần không tạo bản ghi trùng (TC-12).
+
+**Kết quả qua các lần chạy (Bài tập 3)**
+
+| Lần | Mã nguồn | `npm test` | Ghi chú |
+|---|---|---|---|
+| 1 | sau commit thêm 12 test case, chưa sửa bug | 45 / 48 – FAIL TC-08, TC-09, TC-11 | ba lỗi thật → BUG-04, BUG-05, BUG-06 |
+| 2 | sau ba commit `fix(…)` | 48 / 48 | |
+| 3 | sau commit bổ sung của BUG-04 | **49 / 49** | bản `v1.0` |
+
+**Minh chứng**
+
+| Nội dung | Ảnh (`docs/screenshots/`) | Log chạy thật (`docs/ket-qua/bt3/`) |
+|---|---|---|
+| Lần chạy 1 – ba ca FAIL | `TC-08-fail.png` | `lan-1-truoc-khi-sua.txt` |
+| Sau từng bản sửa bug | `BUG-04-fixed.png`, `BUG-05-fixed.png`, `BUG-06-refuse.png`, `BUG-06-fixed.png` | `sau-bug-04.txt`, `sau-bug-05.txt`, `bug-06-tu-choi.txt`, `sau-bug-06.txt` |
+| Toàn bộ test PASS | `npm-test-pass.png` | `npm-test-49.txt` |
+| Từng test case | `TC-01.png` … `TC-12.png` | `TC-01.txt` … `TC-12.txt`, `test-tc-ca-12.txt` |
+| Checklist bảo mật | `bao-mat-1.png` | `bao-mat-1-env.txt`, `bao-mat-7-audit.txt` |
+| Phép thử máy trắng (Docker) | `may-trang-1.png` … `may-trang-4.png` | `may-trang-*.txt` |
 
 ## 7. Trạng thái hiện tại (Bài tập 3 – phiên bản `v1.0`)
 
@@ -240,7 +260,8 @@ Lưu ý: không có endpoint `PUT`/`DELETE` cho phiếu bảo hành vì BR6 (phi
 | Nhật ký thay đổi thiết kế | `docs/thay-doi-thiet-ke.md` | Xem trực tiếp trên GitHub |
 | Nhật ký lỗi | `docs/bug-log.md` | Xem trực tiếp trên GitHub |
 | Khai báo sử dụng AI | `docs/ai-disclosure.md` | Xem trực tiếp trên GitHub |
-| Kết quả chạy | `docs/ket-qua/` | Ảnh và log gọi API |
+| Kết quả chạy | `docs/ket-qua/` | Ảnh và log các buổi 8–12; `docs/ket-qua/bt3/` = log Bài tập 3 |
+| Ảnh minh chứng BT3 | `docs/screenshots/` | Ảnh chụp từng test case, sửa bug, phép thử máy trắng |
 
 **Nhật ký phiên bản**
 
@@ -250,4 +271,4 @@ Lưu ý: không có endpoint `PUT`/`DELETE` cho phiếu bảo hành vì BR6 (phi
 | 1.1 | 19/10/2026 | Buổi 8 – Sprint 1: khung mã nguồn, migration, CRUD phiếu bảo hành |
 | 1.2 | 23/10/2026 | Buổi 10 – Sprint 2: T4–T8, giao diện M1/M2/M3, luồng chính end-to-end |
 | 1.3 | 30/10/2026 | Buổi 12 – Bài tập 2 (`v0.2`): tách lớp nghiệp vụ khỏi HTTP, CRUD khách hàng/thiết bị, giao diện mới, mã 503, Docker |
-| 1.4 | buổi 14–16 | Bài tập 3 (`v1.0`): kiểm thử 12 test case, sửa BUG-04 → BUG-06, đóng gói Docker có healthcheck, tài liệu tiếng Anh, checklist bảo mật |
+| 1.4 | 11/2026 | Bài tập 3 (`v1.0`): kiểm thử 12 test case, sửa BUG-04 → BUG-06, đóng gói Docker có healthcheck, tài liệu tiếng Anh, checklist bảo mật |
