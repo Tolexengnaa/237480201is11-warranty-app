@@ -20,7 +20,8 @@ Mỗi test tự tạo khách hàng/thiết bị riêng (điện thoại `09888xx
 | Lần | Ngày | Mã nguồn | Kết quả `npm test` | Ghi chú |
 |---|---|---|---|---|
 | 1 | 06/11/2026 | commit `test(api): them 12 test case TC-01..TC-12…` | **45/48 PASS, 3 FAIL** (TC-08, TC-09, TC-11) | Ba lỗi thật → BUG-04, BUG-05, BUG-06 trong `docs/bug-log.md` |
-| 2 | 06/11/2026 | sau ba commit `fix(…)` (BUG-04, BUG-05, BUG-06) | **48/48 PASS** | Ảnh: `docs/screenshots/TC-xx.png`, `docs/screenshots/npm-test-pass.png` |
+| 2 | 06/11/2026 | sau ba commit `fix(…)` (BUG-04, BUG-05, BUG-06) | **48/48 PASS** | 12/12 TC PASS |
+| 3 | 06/11/2026 | sau commit bổ sung `fix(customer)…(BUG-04, bo sung)` + 1 unit test | **49/49 PASS** | Ảnh: `docs/screenshots/TC-xx.png`, `docs/screenshots/npm-test-pass.png` |
 
 ## Bảng test case (kết quả thực tế của lần chạy cuối; lần FAIL ghi kèm)
 
@@ -46,6 +47,6 @@ Mỗi test tự tạo khách hàng/thiết bị riêng (điện thoại `09888xx
 | 12/12 TC PASS ở lần chạy cuối | **Đạt** – 12/12 |
 | 6/6 quy tắc BR1–BR6 có test | **Đạt** – BR1 TC-01 · BR2 TC-02 · BR3 TC-03, TC-04 · BR4 TC-05 · BR5 TC-06 · BR6 TC-07 |
 | 0 bug Critical đang mở | **Đạt** – BUG-06 (Critical) đã sửa |
-| `npm test` 48/48 bằng một lệnh | **Đạt** – 33 unit + 3 integration + 12 API |
+| `npm test` 49/49 bằng một lệnh | **Đạt** – 34 unit + 3 integration + 12 API |
 | Phép thử máy trắng ≤ 2 lệnh, cả hai dịch vụ healthy | Xem `docs/deployment-guide.md` mục 5 và ảnh `docs/screenshots/may-trang-*.png` |
 | Chạy lại migrate + seed không đổi số bản ghi | **Đạt** – TC-12 |

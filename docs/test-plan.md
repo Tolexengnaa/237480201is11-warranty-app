@@ -20,10 +20,10 @@ Luồng **L2 – Tiếp nhận và phân loại yêu cầu bảo hành** · Trac
 
 | Tầng | Tệp | Số lượng | Chạy với |
 |---|---|---|---|
-| Unit test (lớp service, đối tượng giả) | `tests/*.unit.test.js` | 33 | Không cần CSDL |
+| Unit test (lớp service, đối tượng giả) | `tests/*.unit.test.js` | 34 | Không cần CSDL |
 | Integration test (service + PostgreSQL thật) | `tests/br2.db.test.js` | 3 | CSDL thật |
 | API test (HTTP → controller → service → repository → CSDL) | `tests/api.db.test.js` | **12** – chính là TC-01 → TC-12 của Test Report | CSDL thật |
-| **Tổng** | | **48** | `npm test` (một lệnh) |
+| **Tổng** | | **49** | `npm test` (một lệnh) |
 
 Phân bổ 12 test case của Test Report theo năm loại của đề:
 
@@ -40,7 +40,7 @@ Phân bổ 12 test case của Test Report theo năm loại của đề:
 1. **12/12** test case trong Test Report PASS ở lần chạy cuối; mọi lần FAIL trước đó có mục Bug Log tương ứng.
 2. **6/6** quy tắc nghiệp vụ BR1–BR6 có ít nhất một test case.
 3. **0** bug mức Critical đang mở.
-4. `npm test` chạy **48/48** test PASS bằng một lệnh, không phụ thuộc dữ liệu có sẵn trên máy.
+4. `npm test` chạy **49/49** test PASS bằng một lệnh, không phụ thuộc dữ liệu có sẵn trên máy.
 5. Phép thử máy trắng: hệ thống lên bằng **≤ 2 lệnh** theo `docs/deployment-guide.md`, `docker compose ps` báo cả hai dịch vụ `healthy`.
 6. Chạy lại `migrate` + `seed` lần hai: số bản ghi của 4 bảng danh mục **không đổi**.
 
