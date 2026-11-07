@@ -4,7 +4,6 @@ node_modules
 .env.*
 !.env.example
 docs
-tests
 *.log
 Dockerfile
 docker-compose.yml

@@ -1,6 +1,7 @@
 // Lắp ráp ứng dụng Express: LỚP API (Controller) gọi xuống LỚP NGHIỆP VỤ (Service).
 const path = require('path');
 const express = require('express');
+const { pool } = require('./config/db');
 const { authenticate, loginRouter } = require('./middlewares/authMiddleware');
 const customerController = require('./controllers/customerController');
 const ticketController = require('./controllers/ticketController');
@@ -9,7 +10,15 @@ const errorHandler = require('./middlewares/errorHandler');
 const app = express();
 app.use(express.json());
 
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+// Kiểm tra sức khoẻ cho Docker healthcheck: chỉ "ok" khi ứng dụng VÀ CSDL cùng trả lời được.
+app.get('/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ status: 'ok', db: 'up' });
+  } catch {
+    res.status(503).json({ status: 'error', db: 'down' });
+  }
+});
 
 // LỚP GIAO DIỆN: M1, M2, M3 (src/frontend) – cùng cổng với API nên không cần cấu hình CORS.
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
