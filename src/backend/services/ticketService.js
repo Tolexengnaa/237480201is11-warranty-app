@@ -58,14 +58,16 @@ function createTicketService({
 
   async function createCustomer(caller, { fullName, phone }) {
     requireRole(caller, ['RECEPTIONIST']);
-    if (!fullName || !String(fullName).trim()) {
-      throw invalidInput('FULL_NAME_REQUIRED', 'Vui lòng nhập họ tên khách hàng');
+    const name = typeof fullName === 'string' ? fullName.trim() : '';
+    if (!name) throw invalidInput('FULL_NAME_REQUIRED', 'Vui lòng nhập họ tên khách hàng');
+    if (name.length > MAX_LEN.fullName) {
+      throw invalidInput('FULL_NAME_TOO_LONG', `Họ tên tối đa ${MAX_LEN.fullName} ký tự`);
     }
     validatePhone(phone);
     if (await customers.findByPhone(phone)) {
       throw conflict('PHONE_EXISTS', 'Số điện thoại đã thuộc về một khách hàng khác');
     }
-    return customers.insert({ fullName: String(fullName).trim(), phone });
+    return customers.insert({ fullName: name, phone });
   }
 
   // ---- D1: tra cứu thiết bị (UC01 bước 5) ----

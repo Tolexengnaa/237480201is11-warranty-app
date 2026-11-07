@@ -73,7 +73,7 @@ Lỗi: **400** `INVALID_PHONE` – *"Số điện thoại không hợp lệ"* (U
 
 Request: `{ "fullName": "Nguyễn Văn A", "phone": "0901234567" }`
 Response **201**: `{ "id": 1, "fullName": "Nguyễn Văn A", "phone": "0901234567" }`
-Lỗi: **400** `INVALID_PHONE` / `FULL_NAME_REQUIRED` · **409** `PHONE_EXISTS`.
+Lỗi: **400** `INVALID_PHONE` / `FULL_NAME_REQUIRED` / `FULL_NAME_TOO_LONG` (> 100 ký tự) · **409** `PHONE_EXISTS`.
 
 ### D1. `GET /api/devices?imei=356789012345678`
 

@@ -91,3 +91,20 @@ test('BR6: trạng thái chỉ đi tới, Từ chối chỉ từ NEW', () => {
   assert.equal(canTransition('ASSIGNED', 'CLASSIFIED'), false);
   assert.equal(canTransition('REJECTED', 'NEW'), false);
 });
+
+test('BUG-04 (C2, biên): họ tên khách hàng 100 ký tự được nhận, 101 ký tự → 400 FULL_NAME_TOO_LONG, không ghi CSDL', async () => {
+  const inserted = [];
+  const service = createTicketService({
+    customers: {
+      findByPhone: async () => null,
+      insert: async (c) => { inserted.push(c); return { id: 9, ...c }; },
+    },
+  });
+  const ok = await service.createCustomer(RECEPTIONIST, { fullName: 'A'.repeat(100), phone: '0944555666' });
+  assert.equal(ok.fullName.length, 100);
+  await assert.rejects(
+    service.createCustomer(RECEPTIONIST, { fullName: 'A'.repeat(101), phone: '0944555667' }),
+    { kind: 'INVALID_INPUT', code: 'FULL_NAME_TOO_LONG' },
+  );
+  assert.equal(inserted.length, 1);
+});
