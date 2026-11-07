@@ -1,4 +1,7 @@
 // S1 – CRUD khách hàng / thiết bị ở lớp nghiệp vụ, dùng repository giả (không cần CSDL).
+// Unit test dùng repository giả: đặt sẵn biến kết nối giả để chạy được cả khi chưa có tệp .env.
+process.env.DB_NAME ||= 'test';
+process.env.DB_USER ||= 'test';
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createMasterDataService } = require('../src/backend/services/masterDataService');
