@@ -1,6 +1,6 @@
 # 237480201is11-warranty-app – Smart CRM · Luồng L2: Tiếp nhận và phân loại yêu cầu bảo hành
 
-**Repo:** https://github.com/Tolexengnaa/237480201is11-warranty-app · **Phiên bản nộp Bài tập 2:** `v0.2`
+**Repo:** https://github.com/Tolexengnaa/237480201is11-warranty-app · **Phiên bản nộp Bài tập 3:** `v1.0` (Bài tập 2: `v0.2`)
 
 Đồ án học phần **Chuyên đề tốt nghiệp 1** – Trường Đại học Văn Lang, Khoa Công nghệ Thông tin – Học kỳ 1, năm học 2026 – 2027.
 
@@ -32,18 +32,23 @@ Có hai cách. Chọn **một**.
 
 ### Cách A – Docker (khuyên dùng khi chấm bài, không cần cài Node.js và PostgreSQL)
 
-Cần Docker Desktop đang chạy. Trong thư mục dự án:
+Cần Docker Desktop đang chạy. **Hai lệnh:**
 
 ```
-docker compose up --build
+git clone --branch v1.0 https://github.com/Tolexengnaa/237480201is11-warranty-app.git && cd 237480201is11-warranty-app
+docker compose up -d --build
 ```
 
-Lệnh này dựng PostgreSQL 16 và ứng dụng, tự chạy `npm run migrate` và `npm run seed` (chạy lại nhiều lần không tạo bản ghi trùng), rồi mở **http://localhost:3000**.
+Lệnh thứ hai dựng PostgreSQL 16 và ứng dụng, tự chạy `npm run migrate` và `npm run seed` (chạy lại nhiều lần không tạo bản ghi trùng). Khi `docker compose ps` báo cả `db` và `app` **healthy**, mở **http://localhost:3000**. Không cần tệp `.env` khi chạy bằng Docker.
 
 | Việc | Lệnh |
 |---|---|
-| Dừng | `Ctrl+C`, sau đó `docker compose down` |
+| Kiểm tra sức khoẻ | `docker compose ps` · `curl http://localhost:3000/health` → `{"status":"ok","db":"up"}` |
+| Chạy toàn bộ kiểm thử trong container | `docker compose exec app npm test` → 49 / 49 pass |
+| Dừng | `docker compose down` |
 | Xoá cả dữ liệu để chạy lại từ đầu | `docker compose down -v` |
+
+Hướng dẫn đầy đủ (tiếng Anh) và cách kiểm tra hệ thống đã chạy đúng: **`docs/deployment-guide.md`**.
 
 ### Cách B – Chạy trực tiếp trên máy
 
@@ -51,17 +56,17 @@ Mỗi bước một lệnh, chạy lần lượt trong terminal. Lệnh `psql` �
 
 | # | Việc | Lệnh |
 |---|---|---|
-| 1 | Lấy mã nguồn bản nộp | `git clone --branch v0.2 https://github.com/Tolexengnaa/237480201is11-warranty-app.git` |
+| 1 | Lấy mã nguồn bản nộp | `git clone --branch v1.0 https://github.com/Tolexengnaa/237480201is11-warranty-app.git` |
 | 2 | Vào thư mục dự án | `cd 237480201is11-warranty-app` |
-| 3 | Cài thư viện | `npm install` |
+| 3 | Cài thư viện đúng phiên bản trong `package-lock.json` | `npm ci` |
 | 4 | Tạo tài khoản CSDL | `psql -U postgres -c "CREATE USER smartcrm WITH PASSWORD 'smartcrm';"` |
 | 5 | Tạo CSDL | `psql -U postgres -c "CREATE DATABASE smartcrm OWNER smartcrm;"` |
 | 6 | Tạo file cấu hình | `cp .env.example .env` (Windows: `copy .env.example .env`) |
 | 7 | Tạo 6 bảng theo DDL BT1 | `npm run migrate` |
 | 8 | Nạp dữ liệu mẫu | `npm run seed` |
 | 9 | Chạy hệ thống (API + giao diện) | `npm start` → mở **http://localhost:3000** (hoặc `npm run start:open` để tự mở trình duyệt) |
-| 10 | Chạy unit test lớp nghiệp vụ (không cần CSDL) | `npm test` |
-| 11 | Chạy test với CSDL thật (cần bước 7–8) | `npm run test:db` |
+| 10 | Chạy toàn bộ kiểm thử (cần bước 7–8) | `npm test` → 49 / 49 pass |
+| 11 | Chỉ chạy unit test (không cần CSDL) | `npm run test:unit` |
 | 12 | Gọi thử toàn bộ API (terminal khác, khi bước 9 đang chạy) | `bash scripts/demo-api.sh` |
 
 `.env.example` dùng sẵn tài khoản `smartcrm / smartcrm` khớp bước 4–5; nếu đặt mật khẩu khác thì sửa `DB_PASSWORD` trong `.env`. Bước 7 và 8 chạy lại nhiều lần không lỗi, không nhân đôi dữ liệu. **Không commit `.env`.**
@@ -81,7 +86,7 @@ Mỗi bước một lệnh, chạy lần lượt trong terminal. Lệnh `psql` �
 | `DB_HOST`, `DB_PORT`, `DB_NAME` | địa chỉ CSDL | `localhost`, `5432`, `smartcrm` |
 | `DB_USER`, `DB_PASSWORD` | tài khoản PostgreSQL | `smartcrm`, mật khẩu của bạn |
 | `APP_PORT` | cổng ứng dụng | `3000` |
-| `SECRET_KEY` | khoá ký token đăng nhập | chuỗi ngẫu nhiên dài |
+| `SECRET_KEY` | khoá ký token đăng nhập; **để trống** thì hệ thống tự sinh khoá ngẫu nhiên mỗi lần khởi động; nếu đặt thì ≥ 32 ký tự (khoá ngắn hoặc đã công khai bị từ chối – BUG-06) | *(trống)* |
 | `TOKEN_EXPIRES_IN` | thời hạn token | `8h` |
 
 ## 3. Dùng thử hệ thống
@@ -177,24 +182,28 @@ Thư mục `src/` ánh xạ một–một với sơ đồ kiến trúc (`docs/ar
 ├── db/schema.sql             # DDL nộp ở BT1 (tài liệu)
 ├── db/migrations/            # migration chạy thật: 001, 002…
 ├── scripts/                  # migrate.js, seed.js, demo-api.sh
-├── tests/                    # *.unit.test.js (npm test) · *.db.test.js (npm run test:db)
+├── tests/                    # *.unit.test.js · *.db.test.js · api.db.test.js (TC-01 → TC-12) – tất cả: npm test
 ├── docs/                     # SRS, sơ đồ .drawio, API contract, nhật ký thay đổi, bug log, ảnh kết quả
 ├── Dockerfile, docker-compose.yml, .dockerignore
 └── .env.example
 ```
 
-**API:** 14 endpoint nghiệp vụ ban đầu (A1, C1–C2, D1, T1–T8, L1–L2) cộng CRUD khách hàng và thiết bị (S1, S2). Chi tiết, mã lỗi và quyền từng vai trò: `docs/api-contract.md`.
+**API:** 14 endpoint nghiệp vụ ban đầu (A1, C1–C2, D1, T1–T8, L1–L2) cộng CRUD khách hàng và thiết bị (S1, S2) và `GET /health` – 24 endpoint. Tài liệu tiếng Anh, mỗi endpoint 7 mục kèm ví dụ chạy thật: `docs/api-docs.md`; bản thiết kế gốc tiếng Việt: `docs/api-contract.md`.
 
 ## 6. Kiểm thử
 
 | Lệnh | Nội dung | Kết quả hiện tại |
 |---|---|---|
-| `npm test` | 33 unit test lớp nghiệp vụ, không cần CSDL: luồng đúng · giá trị biên · dữ liệu sai; kiểm tra `errorHandler` | 33 / 33 pass |
-| `npm run test:db` | 3 test BR2 với CSDL thật | 3 / 3 pass |
+| Lệnh | Nội dung | Kết quả hiện tại |
+|---|---|---|
+| **`npm test`** | **Toàn bộ 49 test bằng một lệnh** (cần CSDL đã migrate + seed) | **49 / 49 pass** |
+| `npm run test:unit` | 34 unit test lớp nghiệp vụ, không cần CSDL | 34 / 34 pass |
+| `npm run test:db` | 3 integration test BR2 + 12 API test TC-01 → TC-12 | 15 / 15 pass |
+| `npm run test:tc` | 12 test case của Test Report, in "thực tế: …" dưới mỗi ca (dùng để chụp ảnh) | 12 / 12 pass |
 
-`npm run migrate` và `npm run seed` chạy lại nhiều lần không tạo bản ghi trùng. Kết quả chạy và ảnh giao diện: `docs/ket-qua/`.
+Kế hoạch và kết quả kiểm thử: `docs/test-plan.md`, `docs/test-report.md`; lỗi đã sửa: `docs/bug-log.md`. `npm run migrate` và `npm run seed` chạy lại nhiều lần không tạo bản ghi trùng (TC-12).
 
-## 7. Trạng thái hiện tại (Bài tập 2 – phiên bản `v0.2`, 30/10/2026)
+## 7. Trạng thái hiện tại (Bài tập 3 – phiên bản `v1.0`)
 
 - [x] Luồng chính UC01 → UC02 → UC03 → UC05 → UC06 chạy end-to-end trên giao diện, dữ liệu thật
 - [x] Quy tắc BR1–BR6, kiểm tra vai trò ở lớp nghiệp vụ, mọi lần đổi trạng thái ghi lịch sử cùng giao dịch
@@ -203,9 +212,12 @@ Thư mục `src/` ánh xạ một–một với sơ đồ kiến trúc (`docs/ar
 - [x] Mất kết nối CSDL trả `503 DB_UNAVAILABLE` với thông báo rõ (TD-14)
 - [x] Giao diện làm lại, dùng được trên điện thoại
 - [x] Tách `src/backend` và `src/frontend` (TD-15)
-- [x] Chạy được bằng Docker (`docker compose up --build`)
-- [x] `docs/bug-log.md`: 3 lỗi đã tái lập và sửa
-- [ ] Chưa đo NFR1 (≤ 2 giây p95 với 10.000 phiếu)
+- [x] Đóng gói Docker: lên bằng một lệnh `docker compose up -d --build`, cả hai dịch vụ có healthcheck, dữ liệu mẫu tự nạp
+- [x] Test Plan + Test Report 12 test case chạy thật (5 loại), `npm test` 49 / 49 bằng một lệnh
+- [x] `docs/bug-log.md`: BUG-04, BUG-05 (Major), BUG-06 (Critical) phát hiện bằng test case, mỗi lỗi một commit sửa riêng; BUG-01 → BUG-03 từ BT2
+- [x] Deployment Guide và API docs tiếng Anh; checklist bảo mật 7 mục có minh chứng
+- [ ] Chưa đo NFR1 (≤ 2 giây p95 với 10.000 phiếu) – ngoài phạm vi BT3 (xem Test Plan mục 1)
+- [ ] Chưa giới hạn số lần đăng nhập sai, chưa có HTTPS – xem `docs/checklist-bao-mat.md`
 
 Lưu ý: không có endpoint `PUT`/`DELETE` cho phiếu bảo hành vì BR6 (phiếu không bao giờ bị xoá). Các thay đổi so với thiết kế ban đầu và lý do: `docs/thay-doi-thiet-ke.md`.
 
@@ -220,7 +232,11 @@ Lưu ý: không có endpoint `PUT`/`DELETE` cho phiếu bảo hành vì BR6 (phi
 | Wireframe BT1 | `docs/wireframe.png` | Ảnh |
 | Giao diện hiện tại | `docs/wireframe-v0.2.png` | Ảnh chụp M1–M3 của bản `v0.2` |
 | SQL DDL | `db/schema.sql` | Bản nộp BT1; chạy thật bằng `npm run migrate` |
-| API contract | `docs/api-contract.md` | Xem trực tiếp trên GitHub |
+| API contract (thiết kế, tiếng Việt) | `docs/api-contract.md` | Xem trực tiếp trên GitHub |
+| API docs (tiếng Anh, BT3) | `docs/api-docs.md` | Xem trực tiếp trên GitHub |
+| Test Plan · Test Report | `docs/test-plan.md` · `docs/test-report.md` | Xem trực tiếp trên GitHub; ảnh ở `docs/screenshots/` |
+| Deployment Guide (tiếng Anh) | `docs/deployment-guide.md` | Xem trực tiếp trên GitHub |
+| Checklist bảo mật | `docs/checklist-bao-mat.md` | Xem trực tiếp trên GitHub |
 | Nhật ký thay đổi thiết kế | `docs/thay-doi-thiet-ke.md` | Xem trực tiếp trên GitHub |
 | Nhật ký lỗi | `docs/bug-log.md` | Xem trực tiếp trên GitHub |
 | Khai báo sử dụng AI | `docs/ai-disclosure.md` | Xem trực tiếp trên GitHub |
@@ -234,3 +250,4 @@ Lưu ý: không có endpoint `PUT`/`DELETE` cho phiếu bảo hành vì BR6 (phi
 | 1.1 | 19/10/2026 | Buổi 8 – Sprint 1: khung mã nguồn, migration, CRUD phiếu bảo hành |
 | 1.2 | 23/10/2026 | Buổi 10 – Sprint 2: T4–T8, giao diện M1/M2/M3, luồng chính end-to-end |
 | 1.3 | 30/10/2026 | Buổi 12 – Bài tập 2 (`v0.2`): tách lớp nghiệp vụ khỏi HTTP, CRUD khách hàng/thiết bị, giao diện mới, mã 503, Docker |
+| 1.4 | buổi 14–16 | Bài tập 3 (`v1.0`): kiểm thử 12 test case, sửa BUG-04 → BUG-06, đóng gói Docker có healthcheck, tài liệu tiếng Anh, checklist bảo mật |
