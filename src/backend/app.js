@@ -8,6 +8,7 @@ const ticketController = require('./controllers/ticketController');
 const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
+app.disable('x-powered-by'); // không quảng cáo framework đang dùng (checklist bảo mật mục 5)
 app.use(express.json());
 
 // Kiểm tra sức khoẻ cho Docker healthcheck: chỉ "ok" khi ứng dụng VÀ CSDL cùng trả lời được.

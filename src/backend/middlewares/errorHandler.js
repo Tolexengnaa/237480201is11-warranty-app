@@ -28,7 +28,9 @@ function errorHandler(err, req, res, next) {
     console.error('Mất kết nối CSDL:', err.code || err.message);
     return res.status(503).json({ code: 'DB_UNAVAILABLE', message: 'Không kết nối được cơ sở dữ liệu, vui lòng thử lại sau' });
   }
-  console.error(err);
+  // Chỉ ghi tên, mã, thông điệp và stack – không ghi `detail` của PostgreSQL vì có thể chứa
+  // dữ liệu cá nhân (ví dụ "Key (phone)=(0901234567) already exists") – checklist bảo mật mục 6.
+  console.error(`[${err.name || 'Error'}${err.code ? ` ${err.code}` : ''}] ${err.message}\n${err.stack || ''}`);
   return res.status(500).json({ code: 'INTERNAL_ERROR', message: 'Lỗi hệ thống, vui lòng thử lại' });
 }
 
