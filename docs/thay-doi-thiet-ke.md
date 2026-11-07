@@ -142,3 +142,42 @@ GV xác nhận bảng 4.2 **đạt đủ các mục chung và mục theo track S
 - **Quyết định:** SỬA
 - **Lý do:** Sai tên tệp là lỗi hình thức bị trừ điểm ở tiêu chí 1 và hoàn toàn tránh được; GV lọc bài theo tên tệp.
 - **Ảnh hưởng:** BT3 nộp đúng một tệp `BT3_237480201is11_MingbouphaXaykham.pdf` (không dấu, không khoảng trắng). Trước khi nộp: kiểm lại tên tệp, mở lại tệp đã tải lên E-learning để chắc đọc được, và kiểm trang bìa có link repo + tag `v1.0`. Không ảnh hưởng mã nguồn.
+
+---
+
+## Quyết định kỹ thuật khi làm Bài tập 3 (buổi 13–16)
+
+### TD-18 `npm test` chạy toàn bộ bộ kiểm thử bằng một lệnh
+
+- **Bối cảnh:** Ở BT2, `npm test` chỉ chạy unit test, còn test với CSDL phải gọi riêng `npm run test:db`. Tiêu chí C3 của BT3 yêu cầu bộ kiểm thử PASS bằng **một lệnh**, và giảng viên chạy lệnh đó trong môi trường của Deployment Guide.
+- **Quyết định:** `npm test` = `node --test --test-concurrency=1 "tests/*.test.js"` (34 unit + 3 integration + 12 API test); thêm `npm run test:unit` (không cần CSDL) và `npm run test:tc` (12 test case của Test Report, in kết quả thực tế). Thư mục `tests/` được đóng vào image Docker để chạy `docker compose exec app npm test`.
+- **Lý do:** Chạy tuần tự từng tệp (`--test-concurrency=1`) vì các tệp test cùng ghi vào một CSDL; mỗi test tự dựng và xoá dữ liệu riêng nên không phụ thuộc dữ liệu có sẵn trên máy.
+- **Ảnh hưởng:** `package.json`, `Dockerfile`, `.dockerignore`, `tests/api.db.test.js` (mới), README mục 2 và 6. Không đổi mã nghiệp vụ.
+
+### TD-19 Kiểm tra dữ liệu dùng chung `validators.js`; quy ước mốc lọc hạn xử lý
+
+- **Bối cảnh:** TC-08 và TC-09 phát hiện BUG-04 và BUG-05: `ticketService` tự kiểm tra ngày và độ dài theo cách lỏng hơn `masterDataService`, và T2 đẩy nguyên chuỗi `dueFrom`/`dueTo` xuống SQL.
+- **Quyết định:** Thêm `src/backend/services/validators.js` (`isCalendarDate`, `parseDueBound`, `MAX_LEN`) dùng chung cho mọi service. API contract T2 ghi rõ: `dueFrom`/`dueTo` nhận `YYYY-MM-DD` theo giờ Việt Nam (từ 00:00 đến hết 23:59:59 của ngày) hoặc ISO 8601 có múi giờ; giá trị khác → 400 `INVALID_FILTER`. T1 và C2 thêm mã `MODEL_TOO_LONG`, `FULL_NAME_TOO_LONG`.
+- **Lý do:** Một quy tắc kiểm tra chỉ nằm ở một nơi thì không thể lệch nhau giữa hai màn hình; mốc lọc phải là một thời điểm xác định, không phụ thuộc múi giờ của CSDL.
+- **Ảnh hưởng:** `validators.js` (mới), `ticketService.js`, `masterDataService.js`, `docs/api-contract.md` (T1, T2, C2). Giao diện M2 không phải sửa vì vẫn gửi `YYYY-MM-DD`.
+
+### TD-20 Khoá ký token không nằm trong repo
+
+- **Bối cảnh:** TC-11 phát hiện BUG-06 (Critical): `SECRET_KEY` công khai trong `.env.example` và `docker-compose.yml`, ai cũng ký được token giả. Repo BT3 bắt buộc PUBLIC.
+- **Quyết định:** Bỏ giá trị khoá khỏi repo. `config/env.js`: không đặt `SECRET_KEY` → sinh khoá ngẫu nhiên 256 bit mỗi lần khởi động; khoá đã công khai hoặc ngắn hơn 32 ký tự → dừng khởi động với hướng dẫn tạo khoá.
+- **Lý do:** Không thể "đổi khoá" bằng cách xoá khỏi lịch sử Git của một repo đã công khai; cách chắc chắn là ứng dụng từ chối chính các khoá đó. Đánh đổi: khi không đặt khoá, người dùng phải đăng nhập lại sau mỗi lần khởi động lại – chấp nhận được với prototype.
+- **Ảnh hưởng:** `src/backend/config/env.js`, `.env.example`, `docker-compose.yml`, hai unit test bỏ khoá `'test'`; Deployment Guide mục 3.
+
+### TD-21 Healthcheck có kiểm CSDL; giảm thông tin lộ ra ngoài
+
+- **Bối cảnh:** Phép thử máy trắng của BT3 kiểm `docker compose ps` phải báo **healthy** cho mọi dịch vụ; ở BT2 dịch vụ `app` chưa có healthcheck và `/health` luôn trả `ok` kể cả khi mất CSDL. Checklist bảo mật mục 5–6.
+- **Quyết định:** `/health` chạy `SELECT 1`, trả `503` khi mất CSDL; thêm healthcheck cho `app` trong `docker-compose.yml` và `Dockerfile`. Tắt header `X-Powered-By`; log lỗi 500 không ghi trường `detail` của PostgreSQL (có thể chứa số điện thoại).
+- **Lý do:** "healthy" phải nghĩa là dùng được thật, không chỉ là tiến trình còn sống.
+- **Ảnh hưởng:** `src/backend/app.js`, `src/backend/middlewares/errorHandler.js`, `Dockerfile`, `docker-compose.yml`. Không đổi API nghiệp vụ.
+
+### TD-22 Bộ dữ liệu học phần (`dataset/`) giữ làm tham khảo, chưa nạp vào CSDL
+
+- **Bối cảnh:** Thư mục `dataset/` có `issue_categories.csv`, `technicians.csv` và mẫu 1.000 phiếu (`tickets_history.csv`, `ticket_status_log.csv`, chọn ngẫu nhiên với seed 20260901 từ 7.800 phiếu) của bộ dữ liệu học phần.
+- **Quyết định:** Chưa nạp vào CSDL ở BT3; dữ liệu mẫu của hệ thống vẫn do `npm run seed` tạo, test tự dựng dữ liệu riêng.
+- **Lý do:** Trạng thái trong dataset (`DA_PHAN_CONG`, `DANG_XU_LY`, `CHO_LINH_KIEN`, `HOAN_TAT`, `DA_DONG`) thuộc cả phần sửa chữa sau luồng L2 và không khớp mô hình trạng thái BR6 (`NEW` → `IN_PROGRESS`, `REJECTED`); phiếu tham chiếu `customer_id`, `product_id`, `center_id` không có trong lược đồ BT1. Nạp vào cần một bảng ánh xạ trạng thái – để dành cho Chuyên đề tốt nghiệp 2.
+- **Ảnh hưởng:** Không đổi mã nguồn hay lược đồ.
