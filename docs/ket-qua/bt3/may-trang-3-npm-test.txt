@@ -1,0 +1,326 @@
+
+> 237480201is11-warranty-app@0.2.0 test
+> node --test --test-concurrency=1 "tests/*.test.js"
+
+TAP version 13
+# SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+# Subtest: TC-01 [BR1] tạo phiếu cho thiết bị của chính khách hàng → 201, trạng thái NEW, thêm 1 phiếu và 1 dòng lịch sử
+ok 1 - TC-01 [BR1] tạo phiếu cho thiết bị của chính khách hàng → 201, trạng thái NEW, thêm 1 phiếu và 1 dòng lịch sử
+  ---
+  duration_ms: 390.284775
+  type: 'test'
+  ...
+# thực tế: 201 BH-2026-000001, trạng thái NEW; phiếu của thiết bị 0 → 1; lịch sử 1 dòng (null → NEW)
+# Subtest: TC-02 [BR2] thiết bị đang có phiếu chưa đóng, tạo phiếu thứ hai → 409 TICKET_OPEN_EXISTS, không thêm phiếu
+ok 2 - TC-02 [BR2] thiết bị đang có phiếu chưa đóng, tạo phiếu thứ hai → 409 TICKET_OPEN_EXISTS, không thêm phiếu
+  ---
+  duration_ms: 21.240824
+  type: 'test'
+  ...
+# thực tế: 409 TICKET_OPEN_EXISTS, openTicketCode=BH-2026-000002; phiếu của thiết bị 1 → 1
+# Subtest: TC-03 [BR3 biên] ngày hết hạn bảo hành = hôm nay → còn bảo hành (outOfWarranty = false)
+ok 3 - TC-03 [BR3 biên] ngày hết hạn bảo hành = hôm nay → còn bảo hành (outOfWarranty = false)
+  ---
+  duration_ms: 15.544904
+  type: 'test'
+  ...
+# thực tế: hết hạn 2026-11-07 (hôm nay) → 201, outOfWarranty=false
+# Subtest: TC-04 [BR3 biên] ngày hết hạn bảo hành = hôm qua → hết bảo hành (outOfWarranty = true)
+ok 4 - TC-04 [BR3 biên] ngày hết hạn bảo hành = hôm qua → hết bảo hành (outOfWarranty = true)
+  ---
+  duration_ms: 15.843104
+  type: 'test'
+  ...
+# thực tế: hết hạn 2026-11-06 (hôm qua) → 201, outOfWarranty=true
+# Subtest: TC-05 [BR4] phân loại mức HIGH → hạn xử lý = thời điểm phân loại + 24 giờ
+ok 5 - TC-05 [BR4] phân loại mức HIGH → hạn xử lý = thời điểm phân loại + 24 giờ
+  ---
+  duration_ms: 23.386349
+  type: 'test'
+  ...
+# thực tế: 200 CLASSIFIED; gọi lúc 2026-11-07T12:29:55.931Z, dueDate=2026-11-08T19:29:55+07:00 (lệch 24.000 giờ)
+# Subtest: TC-06 [BR5] phân công cho kỹ thuật viên đã khoá (kt3) → 409 DATA_CHANGED, phiếu vẫn CLASSIFIED
+ok 6 - TC-06 [BR5] phân công cho kỹ thuật viên đã khoá (kt3) → 409 DATA_CHANGED, phiếu vẫn CLASSIFIED
+  ---
+  duration_ms: 30.65118
+  type: 'test'
+  ...
+# thực tế: 409 DATA_CHANGED "Kỹ thuật viên không còn khả dụng, vui lòng tải lại"; phiếu vẫn CLASSIFIED, technician=null
+# Subtest: TC-07 [BR6] từ chối phiếu đã phân loại (không quay lui) → 409 INVALID_STATUS, lịch sử không thêm dòng
+ok 7 - TC-07 [BR6] từ chối phiếu đã phân loại (không quay lui) → 409 INVALID_STATUS, lịch sử không thêm dòng
+  ---
+  duration_ms: 29.917274
+  type: 'test'
+  ...
+# thực tế: 409 INVALID_STATUS "Chỉ phân loại hoặc từ chối phiếu đang ở trạng thái Mới"; lịch sử 2 → 2 dòng
+# Subtest: TC-08 [dữ liệu sai] T1 thiết bị mới với ngày không có thật 2026-02-30 hoặc model 101 ký tự → 400, không tạo thiết bị
+ok 8 - TC-08 [dữ liệu sai] T1 thiết bị mới với ngày không có thật 2026-02-30 hoặc model 101 ký tự → 400, không tạo thiết bị
+  ---
+  duration_ms: 14.997505
+  type: 'test'
+  ...
+# thực tế: 2026-02-30 → 400 WARRANTY_END_DATE_REQUIRED; model 101 ký tự → 400 MODEL_TOO_LONG; thiết bị 7 → 7
+# Subtest: TC-09 [dữ liệu sai] T2 lọc hạn xử lý: dueFrom=1 → 400 INVALID_FILTER; lọc đúng một ngày (dạng M2 gửi) phải gồm phiếu hạn trong ngày đó
+ok 9 - TC-09 [dữ liệu sai] T2 lọc hạn xử lý: dueFrom=1 → 400 INVALID_FILTER; lọc đúng một ngày (dạng M2 gửi) phải gồm phiếu hạn trong ngày đó
+  ---
+  duration_ms: 29.96973
+  type: 'test'
+  ...
+# thực tế: dueFrom=1 → 400 INVALID_FILTER; lọc 2026-11-08 → 2026-11-08 thấy 1 phiếu (BH-2026-000008, hạn 2026-11-08T19:29:56+07:00)
+# Subtest: TC-10 [bảo mật A01] kỹ thuật viên kt1 xem phiếu đã phân công cho kt2 → 403, không lộ dữ liệu phiếu
+ok 10 - TC-10 [bảo mật A01] kỹ thuật viên kt1 xem phiếu đã phân công cho kt2 → 403, không lộ dữ liệu phiếu
+  ---
+  duration_ms: 37.361943
+  type: 'test'
+  ...
+# thực tế: kt1 xem chi tiết → 403 FORBIDDEN_ROLE, lịch sử → 403, nhận phiếu → 403; kt2 (được phân công) → 200
+# Subtest: TC-11 [bảo mật A07] token tự ký bằng khoá bí mật công khai trong repo → 401 INVALID_TOKEN
+ok 11 - TC-11 [bảo mật A07] token tự ký bằng khoá bí mật công khai trong repo → 401 INVALID_TOKEN
+  ---
+  duration_ms: 6.111141
+  type: 'test'
+  ...
+# thực tế: token ký bằng "your_secret_key" → 401 INVALID_TOKEN
+# thực tế: token ký bằng "doi-khoa-bi-mat-nay-khi-trien-khai" → 401 INVALID_TOKEN
+# Subtest: TC-12 [tái lập] chạy lại migrate + seed lần hai → không lỗi, số bản ghi danh mục không đổi
+ok 12 - TC-12 [tái lập] chạy lại migrate + seed lần hai → không lỗi, số bản ghi danh mục không đổi
+  ---
+  duration_ms: 256.204516
+  type: 'test'
+  ...
+# thực tế: trước {"migrations":1,"categories":7,"staff":5,"customers":3,"devices":3} · sau lần chạy thứ hai {"migrations":1,"categories":7,"staff":5,"customers":3,"devices":3}
+# SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+# Subtest: BR2 (lớp nghiệp vụ): tạo phiếu thứ hai cho cùng IMEI khi phiếu đầu chưa đóng → 409 TICKET_OPEN_EXISTS
+ok 13 - BR2 (lớp nghiệp vụ): tạo phiếu thứ hai cho cùng IMEI khi phiếu đầu chưa đóng → 409 TICKET_OPEN_EXISTS
+  ---
+  duration_ms: 54.139516
+  type: 'test'
+  ...
+# Subtest: BR2 (CSDL): ghi thẳng phiếu chưa đóng thứ hai, bỏ qua service → bị UNIQUE ux_ticket_open_device chặn
+ok 14 - BR2 (CSDL): ghi thẳng phiếu chưa đóng thứ hai, bỏ qua service → bị UNIQUE ux_ticket_open_device chặn
+  ---
+  duration_ms: 2.598655
+  type: 'test'
+  ...
+# Subtest: BR2: phiếu cũ đã đóng (REJECTED) thì được tạo phiếu mới cho cùng IMEI
+ok 15 - BR2: phiếu cũ đã đóng (REJECTED) thì được tạo phiếu mới cho cùng IMEI
+  ---
+  duration_ms: 23.210034
+  type: 'test'
+  ...
+# Subtest: C2: mỗi loại lỗi nghiệp vụ ↔ một mã HTTP
+ok 16 - C2: mỗi loại lỗi nghiệp vụ ↔ một mã HTTP
+  ---
+  duration_ms: 1.484028
+  type: 'test'
+  ...
+# Subtest: C2: lỗi nghiệp vụ không mang mã HTTP
+ok 17 - C2: lỗi nghiệp vụ không mang mã HTTP
+  ---
+  duration_ms: 0.191423
+  type: 'test'
+  ...
+# Subtest: Suy giảm có kiểm soát: mất kết nối CSDL → 503 thông báo rõ, JSON sai → 400, lỗi lạ → 500 chung
+ok 18 - Suy giảm có kiểm soát: mất kết nối CSDL → 503 thông báo rõ, JSON sai → 400, lỗi lạ → 500 chung
+  ---
+  duration_ms: 0.365903
+  type: 'test'
+  ...
+# SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+# Subtest: S1 (hợp lệ): Nhân viên tiếp nhận sửa khách hàng, tên được cắt khoảng trắng
+ok 19 - S1 (hợp lệ): Nhân viên tiếp nhận sửa khách hàng, tên được cắt khoảng trắng
+  ---
+  duration_ms: 1.233455
+  type: 'test'
+  ...
+# Subtest: S1 (hợp lệ): tạo thiết bị mới cho khách đang có
+ok 20 - S1 (hợp lệ): tạo thiết bị mới cho khách đang có
+  ---
+  duration_ms: 0.82193
+  type: 'test'
+  ...
+# Subtest: S1 (hợp lệ): Điều phối viên được xem danh sách khách hàng
+ok 21 - S1 (hợp lệ): Điều phối viên được xem danh sách khách hàng
+  ---
+  duration_ms: 0.282101
+  type: 'test'
+  ...
+# Subtest: S1 (biên): số điện thoại 9 và 11 chữ số bị từ chối, 10 chữ số được nhận
+ok 22 - S1 (biên): số điện thoại 9 và 11 chữ số bị từ chối, 10 chữ số được nhận
+  ---
+  duration_ms: 0.75471
+  type: 'test'
+  ...
+# Subtest: S1 (biên): họ tên đúng 100 ký tự được nhận, 101 ký tự bị từ chối
+ok 23 - S1 (biên): họ tên đúng 100 ký tự được nhận, 101 ký tự bị từ chối
+  ---
+  duration_ms: 0.255898
+  type: 'test'
+  ...
+# Subtest: S1 (biên): limit = 200 hợp lệ, limit = 201 và offset âm bị từ chối
+ok 24 - S1 (biên): limit = 200 hợp lệ, limit = 201 và offset âm bị từ chối
+  ---
+  duration_ms: 0.797946
+  type: 'test'
+  ...
+# Subtest: S1 (sai): ngày 2027-02-30 không tồn tại → INVALID_WARRANTY_DATE
+ok 25 - S1 (sai): ngày 2027-02-30 không tồn tại → INVALID_WARRANTY_DATE
+  ---
+  duration_ms: 0.288949
+  type: 'test'
+  ...
+# Subtest: S1 (sai): IMEI trùng → CONFLICT IMEI_EXISTS; khách không có → NOT_FOUND
+ok 26 - S1 (sai): IMEI trùng → CONFLICT IMEI_EXISTS; khách không có → NOT_FOUND
+  ---
+  duration_ms: 0.319178
+  type: 'test'
+  ...
+# Subtest: S1 (sai): đổi sang số điện thoại của khách khác → CONFLICT PHONE_EXISTS
+ok 27 - S1 (sai): đổi sang số điện thoại của khách khác → CONFLICT PHONE_EXISTS
+  ---
+  duration_ms: 0.361673
+  type: 'test'
+  ...
+# Subtest: S1 (sai): không xoá khách còn thiết bị, không xoá thiết bị đã có phiếu (BR6)
+ok 28 - S1 (sai): không xoá khách còn thiết bị, không xoá thiết bị đã có phiếu (BR6)
+  ---
+  duration_ms: 0.645908
+  type: 'test'
+  ...
+# Subtest: S1 (sai): xoá được khi không còn ràng buộc
+ok 29 - S1 (sai): xoá được khi không còn ràng buộc
+  ---
+  duration_ms: 0.70337
+  type: 'test'
+  ...
+# Subtest: NFR4: Điều phối viên không được ghi, Kỹ thuật viên không được đọc
+ok 30 - NFR4: Điều phối viên không được ghi, Kỹ thuật viên không được đọc
+  ---
+  duration_ms: 0.39704
+  type: 'test'
+  ...
+# SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+# Subtest: BR4: hạn xử lý = thời điểm phân loại + 24 / 72 / 120 giờ theo mức ưu tiên
+ok 31 - BR4: hạn xử lý = thời điểm phân loại + 24 / 72 / 120 giờ theo mức ưu tiên
+  ---
+  duration_ms: 2.575253
+  type: 'test'
+  ...
+# Subtest: BR4 (dữ liệu sai): mức ưu tiên ngoài HIGH/MEDIUM/LOW → 400 INVALID_PRIORITY
+ok 32 - BR4 (dữ liệu sai): mức ưu tiên ngoài HIGH/MEDIUM/LOW → 400 INVALID_PRIORITY
+  ---
+  duration_ms: 2.620082
+  type: 'test'
+  ...
+# Subtest: FR2: phân loại phiếu Mới → CLASSIFIED, ghi danh mục, mức ưu tiên và hạn xử lý trong cùng lần đổi trạng thái
+ok 33 - FR2: phân loại phiếu Mới → CLASSIFIED, ghi danh mục, mức ưu tiên và hạn xử lý trong cùng lần đổi trạng thái
+  ---
+  duration_ms: 1.518563
+  type: 'test'
+  ...
+# Subtest: BR6 (biên): phân loại phiếu không còn ở trạng thái Mới → 409 INVALID_STATUS, không đổi gì
+ok 34 - BR6 (biên): phân loại phiếu không còn ở trạng thái Mới → 409 INVALID_STATUS, không đổi gì
+  ---
+  duration_ms: 0.561731
+  type: 'test'
+  ...
+# Subtest: BR6: từ chối mà lý do chỉ có khoảng trắng → 400 REJECT_REASON_REQUIRED
+ok 35 - BR6: từ chối mà lý do chỉ có khoảng trắng → 400 REJECT_REASON_REQUIRED
+  ---
+  duration_ms: 0.609761
+  type: 'test'
+  ...
+# Subtest: UC03-1a: phân công phiếu còn ở trạng thái Mới → 409 TICKET_NOT_CLASSIFIED
+ok 36 - UC03-1a: phân công phiếu còn ở trạng thái Mới → 409 TICKET_NOT_CLASSIFIED
+  ---
+  duration_ms: 0.639238
+  type: 'test'
+  ...
+# Subtest: UC03-4a / NFR4: Nhân viên tiếp nhận gọi phân công → 403 FORBIDDEN_ROLE
+ok 37 - UC03-4a / NFR4: Nhân viên tiếp nhận gọi phân công → 403 FORBIDDEN_ROLE
+  ---
+  duration_ms: 0.587408
+  type: 'test'
+  ...
+# Subtest: BR5 / UC03-4b: kỹ thuật viên đã bị khoá → 409 DATA_CHANGED, phiếu giữ nguyên
+ok 38 - BR5 / UC03-4b: kỹ thuật viên đã bị khoá → 409 DATA_CHANGED, phiếu giữ nguyên
+  ---
+  duration_ms: 0.473028
+  type: 'test'
+  ...
+# Subtest: FR3: phân công phiếu Đã phân loại cho kỹ thuật viên đang hoạt động → ASSIGNED
+ok 39 - FR3: phân công phiếu Đã phân loại cho kỹ thuật viên đang hoạt động → ASSIGNED
+  ---
+  duration_ms: 0.827547
+  type: 'test'
+  ...
+# Subtest: UC05: kỹ thuật viên khác nhận phiếu không phải của mình → 403
+ok 40 - UC05: kỹ thuật viên khác nhận phiếu không phải của mình → 403
+  ---
+  duration_ms: 1.470887
+  type: 'test'
+  ...
+# SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+# Subtest: FR1: tạo phiếu hợp lệ → mã BH-YYYY-NNNNNN, trạng thái NEW, ghi 1 bản ghi lịch sử (NFR5)
+ok 41 - FR1: tạo phiếu hợp lệ → mã BH-YYYY-NNNNNN, trạng thái NEW, ghi 1 bản ghi lịch sử (NFR5)
+  ---
+  duration_ms: 15.598172
+  type: 'test'
+  ...
+# Subtest: NFR4: Điều phối viên tạo phiếu → 403 FORBIDDEN_ROLE, không ghi gì
+ok 42 - NFR4: Điều phối viên tạo phiếu → 403 FORBIDDEN_ROLE, không ghi gì
+  ---
+  duration_ms: 0.604645
+  type: 'test'
+  ...
+# Subtest: BR2: thiết bị đang có phiếu chưa đóng → 409 TICKET_OPEN_EXISTS kèm mã phiếu cũ
+ok 43 - BR2: thiết bị đang có phiếu chưa đóng → 409 TICKET_OPEN_EXISTS kèm mã phiếu cũ
+  ---
+  duration_ms: 0.318222
+  type: 'test'
+  ...
+# Subtest: BR1: IMEI đã thuộc khách hàng khác → 409 DEVICE_OWNER_MISMATCH
+ok 44 - BR1: IMEI đã thuộc khách hàng khác → 409 DEVICE_OWNER_MISMATCH
+  ---
+  duration_ms: 0.819298
+  type: 'test'
+  ...
+# Subtest: UC01-4a / 7a: IMEI sai định dạng hoặc mô tả lỗi rỗng → 400
+ok 45 - UC01-4a / 7a: IMEI sai định dạng hoặc mô tả lỗi rỗng → 400
+  ---
+  duration_ms: 0.324367
+  type: 'test'
+  ...
+# Subtest: UC01-5a: thiết bị mới mà thiếu model → 400 MODEL_REQUIRED
+ok 46 - UC01-5a: thiết bị mới mà thiếu model → 400 MODEL_REQUIRED
+  ---
+  duration_ms: 0.149569
+  type: 'test'
+  ...
+# Subtest: BR3: hết hạn bảo hành khi ngày tiếp nhận SAU ngày hết hạn (theo giờ Việt Nam)
+ok 47 - BR3: hết hạn bảo hành khi ngày tiếp nhận SAU ngày hết hạn (theo giờ Việt Nam)
+  ---
+  duration_ms: 0.601514
+  type: 'test'
+  ...
+# Subtest: BR6: trạng thái chỉ đi tới, Từ chối chỉ từ NEW
+ok 48 - BR6: trạng thái chỉ đi tới, Từ chối chỉ từ NEW
+  ---
+  duration_ms: 0.160544
+  type: 'test'
+  ...
+# Subtest: BUG-04 (C2, biên): họ tên khách hàng 100 ký tự được nhận, 101 ký tự → 400 FULL_NAME_TOO_LONG, không ghi CSDL
+ok 49 - BUG-04 (C2, biên): họ tên khách hàng 100 ký tự được nhận, 101 ký tự → 400 FULL_NAME_TOO_LONG, không ghi CSDL
+  ---
+  duration_ms: 0.626889
+  type: 'test'
+  ...
+1..49
+# tests 49
+# suites 0
+# pass 49
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1569.762553

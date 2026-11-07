@@ -1,0 +1,38 @@
+
+> 237480201is11-warranty-app@0.2.0 test:tc
+> node --test --test-reporter=spec tests/api.db.test.js
+
+SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+✔ TC-01 [BR1] tạo phiếu cho thiết bị của chính khách hàng → 201, trạng thái NEW, thêm 1 phiếu và 1 dòng lịch sử (354.8897ms)
+ℹ thực tế: 201 BH-2026-000006, trạng thái NEW; phiếu của thiết bị 0 → 1; lịch sử 1 dòng (null → NEW)
+✔ TC-02 [BR2] thiết bị đang có phiếu chưa đóng, tạo phiếu thứ hai → 409 TICKET_OPEN_EXISTS, không thêm phiếu (9.8898ms)
+ℹ thực tế: 409 TICKET_OPEN_EXISTS, openTicketCode=BH-2026-000007; phiếu của thiết bị 1 → 1
+✔ TC-03 [BR3 biên] ngày hết hạn bảo hành = hôm nay → còn bảo hành (outOfWarranty = false) (8.2232ms)
+ℹ thực tế: hết hạn 2026-11-07 (hôm nay) → 201, outOfWarranty=false
+✔ TC-04 [BR3 biên] ngày hết hạn bảo hành = hôm qua → hết bảo hành (outOfWarranty = true) (10.1374ms)
+ℹ thực tế: hết hạn 2026-11-06 (hôm qua) → 201, outOfWarranty=true
+✔ TC-05 [BR4] phân loại mức HIGH → hạn xử lý = thời điểm phân loại + 24 giờ (20.1329ms)
+ℹ thực tế: 200 CLASSIFIED; gọi lúc 2026-11-07T12:09:13.782Z, dueDate=2026-11-08T19:09:13+07:00 (lệch 24.000 giờ)
+✔ TC-06 [BR5] phân công cho kỹ thuật viên đã khoá (kt3) → 409 DATA_CHANGED, phiếu vẫn CLASSIFIED (21.5529ms)
+ℹ thực tế: 409 DATA_CHANGED "Kỹ thuật viên không còn khả dụng, vui lòng tải lại"; phiếu vẫn CLASSIFIED, technician=null
+✔ TC-07 [BR6] từ chối phiếu đã phân loại (không quay lui) → 409 INVALID_STATUS, lịch sử không thêm dòng (17.2054ms)
+ℹ thực tế: 409 INVALID_STATUS "Chỉ phân loại hoặc từ chối phiếu đang ở trạng thái Mới"; lịch sử 2 → 2 dòng
+✔ TC-08 [dữ liệu sai] T1 thiết bị mới với ngày không có thật 2026-02-30 hoặc model 101 ký tự → 400, không tạo thiết bị (5.9057ms)
+ℹ thực tế: 2026-02-30 → 400 WARRANTY_END_DATE_REQUIRED; model 101 ký tự → 400 MODEL_TOO_LONG; thiết bị 7 → 7
+✔ TC-09 [dữ liệu sai] T2 lọc hạn xử lý: dueFrom=1 → 400 INVALID_FILTER; lọc đúng một ngày (dạng M2 gửi) phải gồm phiếu hạn trong ngày đó (15.972ms)
+ℹ thực tế: dueFrom=1 → 400 INVALID_FILTER; lọc 2026-11-08 → 2026-11-08 thấy 1 phiếu (BH-2026-000013, hạn 2026-11-08T19:09:13+07:00)
+✔ TC-10 [bảo mật A01] kỹ thuật viên kt1 xem phiếu đã phân công cho kt2 → 403, không lộ dữ liệu phiếu (20.8213ms)
+ℹ thực tế: kt1 xem chi tiết → 403 FORBIDDEN_ROLE, lịch sử → 403, nhận phiếu → 403; kt2 (được phân công) → 200
+✔ TC-11 [bảo mật A07] token tự ký bằng khoá bí mật công khai trong repo → 401 INVALID_TOKEN (3.3215ms)
+ℹ thực tế: token ký bằng "your_secret_key" → 401 INVALID_TOKEN
+ℹ thực tế: token ký bằng "doi-khoa-bi-mat-nay-khi-trien-khai" → 401 INVALID_TOKEN
+✔ TC-12 [tái lập] chạy lại migrate + seed lần hai → không lỗi, số bản ghi danh mục không đổi (341.1733ms)
+ℹ thực tế: trước {"migrations":1,"categories":7,"staff":5,"customers":8,"devices":8} · sau lần chạy thứ hai {"migrations":1,"categories":7,"staff":5,"customers":8,"devices":8}
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1096.3923

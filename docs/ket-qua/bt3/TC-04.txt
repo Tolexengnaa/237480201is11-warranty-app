@@ -1,0 +1,11 @@
+SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+✔ TC-04 [BR3 biên] ngày hết hạn bảo hành = hôm qua → hết bảo hành (outOfWarranty = true) (365.3897ms)
+ℹ thực tế: hết hạn 2026-11-06 (hôm qua) → 201, outOfWarranty=true
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 645.9506

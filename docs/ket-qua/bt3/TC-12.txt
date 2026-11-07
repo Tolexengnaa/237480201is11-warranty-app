@@ -1,0 +1,11 @@
+SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+✔ TC-12 [tái lập] chạy lại migrate + seed lần hai → không lỗi, số bản ghi danh mục không đổi (671.2262ms)
+ℹ thực tế: trước {"migrations":1,"categories":7,"staff":5,"customers":8,"devices":8} · sau lần chạy thứ hai {"migrations":1,"categories":7,"staff":5,"customers":8,"devices":8}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 954.3043

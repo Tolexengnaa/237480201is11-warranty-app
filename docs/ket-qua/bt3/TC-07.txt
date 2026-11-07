@@ -1,0 +1,11 @@
+SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+✔ TC-07 [BR6] từ chối phiếu đã phân loại (không quay lui) → 409 INVALID_STATUS, lịch sử không thêm dòng (380.4304ms)
+ℹ thực tế: 409 INVALID_STATUS "Chỉ phân loại hoặc từ chối phiếu đang ở trạng thái Mới"; lịch sử 2 → 2 dòng
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 685.6851

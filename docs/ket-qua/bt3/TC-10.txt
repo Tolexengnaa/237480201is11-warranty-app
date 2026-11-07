@@ -1,0 +1,11 @@
+SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+✔ TC-10 [bảo mật A01] kỹ thuật viên kt1 xem phiếu đã phân công cho kt2 → 403, không lộ dữ liệu phiếu (398.8855ms)
+ℹ thực tế: kt1 xem chi tiết → 403 FORBIDDEN_ROLE, lịch sử → 403, nhận phiếu → 403; kt2 (được phân công) → 200
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 721.6451

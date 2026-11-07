@@ -1,0 +1,11 @@
+SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+✔ TC-02 [BR2] thiết bị đang có phiếu chưa đóng, tạo phiếu thứ hai → 409 TICKET_OPEN_EXISTS, không thêm phiếu (357.4949ms)
+ℹ thực tế: 409 TICKET_OPEN_EXISTS, openTicketCode=BH-2026-000006; phiếu của thiết bị 1 → 1
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 649.4843

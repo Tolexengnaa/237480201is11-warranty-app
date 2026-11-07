@@ -1,0 +1,12 @@
+SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+✔ TC-11 [bảo mật A07] token tự ký bằng khoá bí mật công khai trong repo → 401 INVALID_TOKEN (338.4195ms)
+ℹ thực tế: token ký bằng "your_secret_key" → 401 INVALID_TOKEN
+ℹ thực tế: token ký bằng "doi-khoa-bi-mat-nay-khi-trien-khai" → 401 INVALID_TOKEN
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 618.381

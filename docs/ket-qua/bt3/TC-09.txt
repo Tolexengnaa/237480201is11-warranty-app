@@ -1,0 +1,11 @@
+SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+✔ TC-09 [dữ liệu sai] T2 lọc hạn xử lý: dueFrom=1 → 400 INVALID_FILTER; lọc đúng một ngày (dạng M2 gửi) phải gồm phiếu hạn trong ngày đó (368.7854ms)
+ℹ thực tế: dueFrom=1 → 400 INVALID_FILTER; lọc 2026-11-08 → 2026-11-08 thấy 1 phiếu (BH-2026-000006, hạn 2026-11-08T19:15:16+07:00)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 639.0884

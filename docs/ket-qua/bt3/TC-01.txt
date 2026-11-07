@@ -1,0 +1,11 @@
+SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+✔ TC-01 [BR1] tạo phiếu cho thiết bị của chính khách hàng → 201, trạng thái NEW, thêm 1 phiếu và 1 dòng lịch sử (360.5857ms)
+ℹ thực tế: 201 BH-2026-000006, trạng thái NEW; phiếu của thiết bị 0 → 1; lịch sử 1 dòng (null → NEW)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 652.5337

@@ -1,0 +1,165 @@
+
+> 237480201is11-warranty-app@0.2.0 test
+> node --test --test-concurrency=1 "tests/*.test.js"
+
+✔ TC-01 [BR1] tạo phiếu cho thiết bị của chính khách hàng → 201, trạng thái NEW, thêm 1 phiếu và 1 dòng lịch sử (350.3474ms)
+✔ TC-02 [BR2] thiết bị đang có phiếu chưa đóng, tạo phiếu thứ hai → 409 TICKET_OPEN_EXISTS, không thêm phiếu (9.6629ms)
+✔ TC-03 [BR3 biên] ngày hết hạn bảo hành = hôm nay → còn bảo hành (outOfWarranty = false) (6.8895ms)
+✔ TC-04 [BR3 biên] ngày hết hạn bảo hành = hôm qua → hết bảo hành (outOfWarranty = true) (6.9653ms)
+✔ TC-05 [BR4] phân loại mức HIGH → hạn xử lý = thời điểm phân loại + 24 giờ (13.7711ms)
+✔ TC-06 [BR5] phân công cho kỹ thuật viên đã khoá (kt3) → 409 DATA_CHANGED, phiếu vẫn CLASSIFIED (16.3299ms)
+✔ TC-07 [BR6] từ chối phiếu đã phân loại (không quay lui) → 409 INVALID_STATUS, lịch sử không thêm dòng (17.8922ms)
+error: date/time field value out of range: "2026-02-30"
+    at D:\BT3\237480201is11-warranty-app\node_modules\pg\lib\client.js:694:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Object.insert (D:\BT3\237480201is11-warranty-app\src\backend\repositories\deviceRepository.js:13:20)
+    at async D:\BT3\237480201is11-warranty-app\src\backend\services\ticketService.js:110:18
+    at async withTransaction (D:\BT3\237480201is11-warranty-app\src\backend\config\db.js:19:20)
+    at async D:\BT3\237480201is11-warranty-app\src\backend\controllers\ticketController.js:10:18 {
+  length: 151,
+  severity: 'ERROR',
+  code: '22008',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $4 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'datetime.c',
+  line: '3988',
+  routine: 'DateTimeParseError'
+}
+✖ TC-08 [dữ liệu sai] T1 thiết bị mới với ngày không có thật 2026-02-30 hoặc model 101 ký tự → 400, không tạo thiết bị (5.2579ms)
+error: invalid input syntax for type timestamp with time zone: "1"
+    at D:\BT3\237480201is11-warranty-app\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Object.search (D:\BT3\237480201is11-warranty-app\src\backend\repositories\ticketRepository.js:90:17)
+    at async Object.listTickets (D:\BT3\237480201is11-warranty-app\src\backend\services\ticketService.js:168:30)
+    at async D:\BT3\237480201is11-warranty-app\src\backend\controllers\ticketController.js:16:18 {
+  length: 162,
+  severity: 'ERROR',
+  code: '22007',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'datetime.c',
+  line: '4029',
+  routine: 'DateTimeParseError'
+}
+✖ TC-09 [dữ liệu sai] T2 lọc hạn xử lý: dueFrom=1 → 400 INVALID_FILTER; lọc đúng một ngày (dạng M2 gửi) phải gồm phiếu hạn trong ngày đó (4.9812ms)
+✔ TC-10 [bảo mật A01] kỹ thuật viên kt1 xem phiếu đã phân công cho kt2 → 403, không lộ dữ liệu phiếu (72.5588ms)
+✖ TC-11 [bảo mật A07] token tự ký bằng khoá bí mật công khai trong repo → 401 INVALID_TOKEN (3.1181ms)
+✔ TC-12 [tái lập] chạy lại migrate + seed lần hai → không lỗi, số bản ghi danh mục không đổi (334.9709ms)
+✔ BR2 (lớp nghiệp vụ): tạo phiếu thứ hai cho cùng IMEI khi phiếu đầu chưa đóng → 409 TICKET_OPEN_EXISTS (65.3237ms)
+✔ BR2 (CSDL): ghi thẳng phiếu chưa đóng thứ hai, bỏ qua service → bị UNIQUE ux_ticket_open_device chặn (1.5266ms)
+✔ BR2: phiếu cũ đã đóng (REJECTED) thì được tạo phiếu mới cho cùng IMEI (38.8487ms)
+✔ C2: mỗi loại lỗi nghiệp vụ ↔ một mã HTTP (0.6835ms)
+✔ C2: lỗi nghiệp vụ không mang mã HTTP (0.1285ms)
+✔ Suy giảm có kiểm soát: mất kết nối CSDL → 503 thông báo rõ, JSON sai → 400, lỗi lạ → 500 chung (0.1609ms)
+✔ S1 (hợp lệ): Nhân viên tiếp nhận sửa khách hàng, tên được cắt khoảng trắng (0.996ms)
+✔ S1 (hợp lệ): tạo thiết bị mới cho khách đang có (1.1878ms)
+✔ S1 (hợp lệ): Điều phối viên được xem danh sách khách hàng (0.1944ms)
+✔ S1 (biên): số điện thoại 9 và 11 chữ số bị từ chối, 10 chữ số được nhận (0.532ms)
+✔ S1 (biên): họ tên đúng 100 ký tự được nhận, 101 ký tự bị từ chối (0.1856ms)
+✔ S1 (biên): limit = 200 hợp lệ, limit = 201 và offset âm bị từ chối (0.1989ms)
+✔ S1 (sai): ngày 2027-02-30 không tồn tại → INVALID_WARRANTY_DATE (0.1948ms)
+✔ S1 (sai): IMEI trùng → CONFLICT IMEI_EXISTS; khách không có → NOT_FOUND (0.1886ms)
+✔ S1 (sai): đổi sang số điện thoại của khách khác → CONFLICT PHONE_EXISTS (0.1717ms)
+✔ S1 (sai): không xoá khách còn thiết bị, không xoá thiết bị đã có phiếu (BR6) (0.3608ms)
+✔ S1 (sai): xoá được khi không còn ràng buộc (0.8117ms)
+✔ NFR4: Điều phối viên không được ghi, Kỹ thuật viên không được đọc (0.2258ms)
+✔ BR4: hạn xử lý = thời điểm phân loại + 24 / 72 / 120 giờ theo mức ưu tiên (1.4936ms)
+✔ BR4 (dữ liệu sai): mức ưu tiên ngoài HIGH/MEDIUM/LOW → 400 INVALID_PRIORITY (0.5075ms)
+✔ FR2: phân loại phiếu Mới → CLASSIFIED, ghi danh mục, mức ưu tiên và hạn xử lý trong cùng lần đổi trạng thái (0.6335ms)
+✔ BR6 (biên): phân loại phiếu không còn ở trạng thái Mới → 409 INVALID_STATUS, không đổi gì (0.2066ms)
+✔ BR6: từ chối mà lý do chỉ có khoảng trắng → 400 REJECT_REASON_REQUIRED (0.1932ms)
+✔ UC03-1a: phân công phiếu còn ở trạng thái Mới → 409 TICKET_NOT_CLASSIFIED (0.2538ms)
+✔ UC03-4a / NFR4: Nhân viên tiếp nhận gọi phân công → 403 FORBIDDEN_ROLE (0.1502ms)
+✔ BR5 / UC03-4b: kỹ thuật viên đã bị khoá → 409 DATA_CHANGED, phiếu giữ nguyên (0.1511ms)
+✔ FR3: phân công phiếu Đã phân loại cho kỹ thuật viên đang hoạt động → ASSIGNED (0.1523ms)
+✔ UC05: kỹ thuật viên khác nhận phiếu không phải của mình → 403 (0.2935ms)
+✔ FR1: tạo phiếu hợp lệ → mã BH-YYYY-NNNNNN, trạng thái NEW, ghi 1 bản ghi lịch sử (NFR5) (14.042ms)
+✔ NFR4: Điều phối viên tạo phiếu → 403 FORBIDDEN_ROLE, không ghi gì (0.4084ms)
+✔ BR2: thiết bị đang có phiếu chưa đóng → 409 TICKET_OPEN_EXISTS kèm mã phiếu cũ (0.2002ms)
+✔ BR1: IMEI đã thuộc khách hàng khác → 409 DEVICE_OWNER_MISMATCH (0.1312ms)
+✔ UC01-4a / 7a: IMEI sai định dạng hoặc mô tả lỗi rỗng → 400 (0.1441ms)
+✔ UC01-5a: thiết bị mới mà thiếu model → 400 MODEL_REQUIRED (0.1408ms)
+✔ BR3: hết hạn bảo hành khi ngày tiếp nhận SAU ngày hết hạn (theo giờ Việt Nam) (0.2537ms)
+✔ BR6: trạng thái chỉ đi tới, Từ chối chỉ từ NEW (0.1013ms)
+ℹ tests 48
+ℹ suites 0
+ℹ pass 45
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1765.1239
+
+✖ failing tests:
+
+test at tests\api.db.test.js:191:1
+✖ TC-08 [dữ liệu sai] T1 thiết bị mới với ngày không có thật 2026-02-30 hoặc model 101 ký tự → 400, không tạo thiết bị (5.2579ms)
+  AssertionError [ERR_ASSERTION]: {"code":"INTERNAL_ERROR","message":"Lỗi hệ thống, vui lòng thử lại"}
+  
+  500 !== 400
+  
+      at TestContext.<anonymous> (D:\BT3\237480201is11-warranty-app\tests\api.db.test.js:201:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 500,
+    expected: 400,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\api.db.test.js:215:1
+✖ TC-09 [dữ liệu sai] T2 lọc hạn xử lý: dueFrom=1 → 400 INVALID_FILTER; lọc đúng một ngày (dạng M2 gửi) phải gồm phiếu hạn trong ngày đó (4.9812ms)
+  AssertionError [ERR_ASSERTION]: {"code":"INTERNAL_ERROR","message":"Lỗi hệ thống, vui lòng thử lại"}
+  
+  500 !== 400
+  
+      at TestContext.<anonymous> (D:\BT3\237480201is11-warranty-app\tests\api.db.test.js:217:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 500,
+    expected: 400,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests\api.db.test.js:253:1
+✖ TC-11 [bảo mật A07] token tự ký bằng khoá bí mật công khai trong repo → 401 INVALID_TOKEN (3.1181ms)
+  AssertionError [ERR_ASSERTION]: Token ký bằng "your_secret_key" được chấp nhận: [{"id":4,"fullName":"Võ Lan","openTicketCount":1},{"id":3,"fullName":"Phạm Huy","openTicketCount":2}]
+  
+  200 !== 401
+  
+      at TestContext.<anonymous> (D:\BT3\237480201is11-warranty-app\tests\api.db.test.js:258:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,6 @@
+
+> 237480201is11-warranty-app@0.2.0 migrate
+> node scripts/migrate.js
+
+SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+bỏ qua   001_init_schema.sql (đã chạy)

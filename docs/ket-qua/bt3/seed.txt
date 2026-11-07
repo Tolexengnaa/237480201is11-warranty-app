@@ -1,0 +1,6 @@
+
+> 237480201is11-warranty-app@0.2.0 seed
+> node scripts/seed.js
+
+SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+seed xong: { issue_category: 7, staff: 5, customer: 8, device: 8 }

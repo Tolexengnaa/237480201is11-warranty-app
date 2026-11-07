@@ -1,0 +1,8 @@
+app-1  | SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+app-1  | seed xong: { issue_category: 7, staff: 5, customer: 3, device: 3 }
+app-1  | 
+app-1  | > 237480201is11-warranty-app@0.2.0 start
+app-1  | > node src/backend/server.js
+app-1  | 
+app-1  | SECRET_KEY chưa đặt – dùng khoá ngẫu nhiên cho lần chạy này; đăng nhập lại sau mỗi lần khởi động.
+app-1  | warranty-app đang chạy tại http://localhost:3000

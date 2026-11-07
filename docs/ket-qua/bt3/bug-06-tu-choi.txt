@@ -1,0 +1,17 @@
+D:\BT3\237480201is11-warranty-app\src\backend\config\env.js:21
+    throw new Error(
+    ^
+
+Error: SECRET_KEY không an toàn (đã công khai hoặc ngắn hơn 32 ký tự). Tạo khoá mới: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))" hoặc để trống để hệ thống tự sinh.
+    at secretKey (D:\BT3\237480201is11-warranty-app\src\backend\config\env.js:21:11)
+    at Object.<anonymous> (D:\BT3\237480201is11-warranty-app\src\backend\config\env.js:47:14)
+    at Module._compile (node:internal/modules/cjs/loader:1929:14)
+    at Object..js (node:internal/modules/cjs/loader:2060:10)
+    at Module.load (node:internal/modules/cjs/loader:1651:32)
+    at Module._load (node:internal/modules/cjs/loader:1443:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)
+    at Module.require (node:internal/modules/cjs/loader:1674:12)
+    at require (node:internal/modules/helpers:157:16)
+    at Object.<anonymous> (D:\BT3\237480201is11-warranty-app\src\backend\services\authService.js:4:13)
+
+Node.js v24.22.1
