@@ -184,7 +184,7 @@ GV xác nhận bảng 4.2 **đạt đủ các mục chung và mục theo track S
 
 ### TD-23 Hoàn thiện theo tài liệu buổi 15 – 16 (JWT, HTTPS, minh chứng bảo mật)
 
-- **Bối cảnh:** Đối chiếu danh sách tự kiểm track SE (tài liệu tự học buổi 15, mục A6) và checklist nộp bài buổi 16: hàm xác thực token chưa chỉ định thuật toán (thư viện nhận cả HS384, HS512); Deployment Guide chưa có mục HTTPS khi triển khai thật; checklist bảo mật chưa ghi kết quả ba lệnh grep (mục A4).
+- **Bối cảnh:** Đối chiếu danh sách tự kiểm track SE (tài liệu tự học buổi 15, mục A6) và checklist nộp bài buổi 16: hàm xác thực token chưa chỉ định thuật toán (thư viện nhận cả HS384, HS512 – ghi ở BUG-07); Deployment Guide chưa có mục HTTPS khi triển khai thật; checklist bảo mật chưa ghi kết quả ba lệnh grep (mục A4).
 - **Quyết định:** `authService.js` ký và xác thực token chỉ với `HS256`; thêm Appendix A "HTTPS in a real deployment" vào Deployment Guide; thêm bảng kết quả ba lệnh grep và bảng tự kiểm track SE vào `docs/checklist-bao-mat.md`. Gắn lại tag `v1.0` vào commit mới nhất.
 - **Lý do:** Không để thư viện chọn thuật toán theo header của token; người triển khai thật biết phải đặt ứng dụng sau proxy có TLS; mỗi mục checklist có minh chứng chạy thật.
 - **Ảnh hưởng:** `src/backend/services/authService.js`, `docs/deployment-guide.md`, `docs/checklist-bao-mat.md`. API, CSDL và 49 test không đổi (49/49 PASS).

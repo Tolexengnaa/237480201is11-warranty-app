@@ -11,11 +11,12 @@ Mức độ theo đề BT3 mục 2.3: **Critical** – hệ thống không dùng
 | BUG-04 | Major | TC-08 | Đã sửa |
 | BUG-05 | Major | TC-09 | Đã sửa |
 | BUG-06 | **Critical** | TC-11 | Đã sửa |
+| BUG-07 | Minor | Tự kiểm bảo mật track SE (buổi 15, A6) | Đã sửa |
 | BUG-01 → BUG-03 | – | Giai đoạn 2 (BT2) | Đã sửa, giữ lại để truy vết |
 
 ---
 
-# Giai đoạn 3 – Bài tập 3 (phát hiện khi chạy Test Report ngày 06/11/2026)
+# Giai đoạn 3 – Bài tập 3 (BUG-04 → BUG-06 phát hiện khi chạy Test Report ngày 07/11/2026; BUG-07 khi tự kiểm bảo mật ngày 13/11/2026)
 
 ## BUG-04 – Tạo phiếu với ngày không có thật hoặc model quá dài trả 500 "Lỗi hệ thống"
 
@@ -52,6 +53,20 @@ Mức độ theo đề BT3 mục 2.3: **Critical** – hệ thống không dùng
 5. **Nguyên nhân:** `config/env.js` chỉ kiểm `SECRET_KEY` **có giá trị**, không kiểm giá trị đó có bí mật hay không; trong khi chính repo cung cấp sẵn hai giá trị công khai – `SECRET_KEY=your_secret_key` trong `.env.example` và `SECRET_KEY: doi-khoa-bi-mat-nay-khi-trien-khai` trong `docker-compose.yml`. Ai chạy theo hướng dẫn đều dùng khoá ai cũng biết, nên chữ ký JWT không còn chứng minh được gì.
 6. **Cách sửa:** (1) Xoá khoá khỏi `docker-compose.yml` (chỉ còn `${SECRET_KEY:-}`) và để trống trong `.env.example`. (2) `env.js`: thiếu khoá → tự sinh khoá ngẫu nhiên 256 bit cho lần chạy (cảnh báo phải đăng nhập lại sau khởi động lại); khoá nằm trong danh sách đã công khai hoặc ngắn hơn 32 ký tự → **dừng khởi động** với thông báo hướng dẫn tạo khoá. (3) Bỏ khoá `'test'` trong unit test. Hai khoá cũ vẫn còn trong lịch sử Git nhưng đã **vô hiệu**: ứng dụng từ chối khởi động với chúng (đây chính là bước "đổi khoá" theo đề).
 7. **Commit và xác nhận:** `fix(security): bo khoa bi mat khoi repo, tu choi SECRET_KEY yeu hoac da cong khai (BUG-06)` – [5f1d2db](https://github.com/Tolexengnaa/237480201is11-warranty-app/commit/5f1d2dbc1bc56400d9ae44ed1fbd078ca1ad3fe7). Sau khi sửa: TC-11 PASS (cả hai khoá → 401 `INVALID_TOKEN`); khởi động với `SECRET_KEY=your_secret_key` → dừng với thông báo "SECRET_KEY không an toàn…"; `npm test` 48/48 (trước commit bổ sung của BUG-04) → ảnh `docs/screenshots/BUG-06-fixed.png`.
+
+---
+
+## BUG-07 – Hàm xác thực token không chỉ định thuật toán: token ký bằng HS384 vẫn được nhận
+
+1. **Mã và mức độ:** BUG-07 · **Minor** – Theo hai câu hỏi phân loại: người dùng vẫn làm được mọi việc; dữ liệu không sai và không lộ, vì muốn ký được token HS384 hợp lệ vẫn phải biết `SECRET_KEY` (đã ngoài repo sau BUG-06). Đây là lỗi phòng thủ chiều sâu: thư viện tự chọn thuật toán theo header của token thay vì theo cấu hình của hệ thống.
+2. **Phát hiện bởi:** Tự kiểm track SE theo tài liệu tự học buổi 15, mục A6 ("Hàm xác thực token chỉ định rõ thuật toán"), khi điền `docs/checklist-bao-mat.md` – không phải từ một test case trong Test Report.
+3. **Triệu chứng:** Token `{sub:'2', role:'COORDINATOR'}` ký bằng **HS384** với đúng `SECRET_KEY` vẫn qua bước kiểm chữ ký của `verifyToken`; hệ thống chỉ có ý định dùng HS256.
+4. **Cách tái lập:** Trong thư mục dự án (đã `npm ci`), đặt `SECRET_KEY` ≥ 32 ký tự rồi chạy
+   `node -e "const jwt=require('jsonwebtoken');const k=process.env.SECRET_KEY;const t=jwt.sign({sub:'2',role:'COORDINATOR'},k,{algorithm:'HS384'});jwt.verify(t,k);console.log('HS384 duoc nhan')"`
+   → in `HS384 duoc nhan` (đây đúng là lời gọi `jwt.verify(token, env.secretKey)` của `authService.js` trước khi sửa).
+5. **Nguyên nhân:** `authService.verifyToken` gọi `jwt.verify(token, env.secretKey)` **không truyền `algorithms`**, nên `jsonwebtoken` nhận mọi thuật toán HMAC (HS256, HS384, HS512) theo trường `alg` trong header của token; `login` cũng ký không chỉ định thuật toán, dựa vào mặc định của thư viện.
+6. **Cách sửa:** Thêm hằng `JWT_ALGORITHM = 'HS256'`; `jwt.sign(…, { algorithm: JWT_ALGORITHM })` và `jwt.verify(…, { algorithms: [JWT_ALGORITHM] })`. Không đổi API, CSDL hay định dạng token đang phát hành (vẫn là HS256).
+7. **Commit và xác nhận:** `fix(security): JWT chi chap nhan thuat toan HS256 khi ky va xac thuc` – [8bb39b5](https://github.com/Tolexengnaa/237480201is11-warranty-app/commit/8bb39b5d62778e717cfc8e8627770a79b2c6f4a7) (commit này tạo trước khi đặt mã BUG-07 nên message chưa có hậu tố `(BUG-07)`). Sau khi sửa: gọi `require('./src/backend/services/authService').verifyToken(<token HS384 ở dòng 4>)` → bị từ chối `INVALID_TOKEN`; `npm test` 49/49 PASS (TD-23).
 
 ---
 

@@ -1,6 +1,6 @@
 # Checklist bảo mật – Bài tập 3 (tự đánh giá)
 
-Luồng L2 · Track SE · MINGBOUPPHA XAYKHAM – 237480201is11 · Đánh giá bằng cách **chạy thử** ngày 06/11/2026 trên mã nguồn tag `v1.0`.
+Luồng L2 · Track SE · MINGBOUPPHA XAYKHAM – 237480201is11 · Đánh giá bằng cách **chạy thử** ngày 07/11/2026; bổ sung kết quả ba lệnh grep và bảng tự kiểm track SE ngày 13/11/2026, trên mã nguồn tag `v1.0`.
 
 Mỗi mục ghi một trong ba giá trị **ĐÃ LÀM / CHƯA LÀM / KHÔNG ÁP DỤNG**, kèm một dòng minh chứng (lệnh đã chạy + kết quả, hoặc tệp/test). Ảnh chụp: `docs/screenshots/bao-mat-*.png`.
 
@@ -27,7 +27,7 @@ Mỗi mục ghi một trong ba giá trị **ĐÃ LÀM / CHƯA LÀM / KHÔNG ÁP 
 | Mục | Giá trị | Minh chứng |
 |---|---|---|
 | Khoá ký token lấy từ biến môi trường, ≥ 32 ký tự, hệ thống dừng nếu không an toàn | **ĐÃ LÀM** (khác mẫu một điểm) | `config/env.js` → `secretKey()`: khoá ngắn hơn 32 ký tự hoặc đã công khai → dừng khởi động (BUG-06). Khác mẫu: khi **để trống**, hệ thống tự sinh khoá ngẫu nhiên 256 bit thay vì dừng, để phép thử máy trắng chạy được bằng ≤ 2 lệnh mà repo vẫn không chứa khoá (TD-20). Đánh đổi: khởi động lại thì phải đăng nhập lại. |
-| Hàm xác thực token chỉ định thuật toán, không dùng `decode` để phân quyền | **ĐÃ LÀM** | `authService.js`: `jwt.sign(…, { algorithm: 'HS256' })`, `jwt.verify(…, { algorithms: ['HS256'] })`; trước khi sửa, token ký bằng HS384 vẫn được nhận, sau khi sửa → `INVALID_TOKEN`. `grep -rn "jwt.decode" src/` → rỗng. |
+| Hàm xác thực token chỉ định thuật toán, không dùng `decode` để phân quyền | **ĐÃ LÀM** | `authService.js`: `jwt.sign(…, { algorithm: 'HS256' })`, `jwt.verify(…, { algorithms: ['HS256'] })`; trước khi sửa, token ký bằng HS384 vẫn được nhận, sau khi sửa → `INVALID_TOKEN` (BUG-07). `grep -rn "jwt.decode" src/` → rỗng. |
 | Payload token chỉ có id, vai trò, hạn dùng | **ĐÃ LÀM** | `{ sub, role }` + `iat`, `exp` (8 giờ, `TOKEN_EXPIRES_IN`); không có họ tên, số điện thoại. |
 | Kiểm soát truy cập theo chủ sở hữu, có test case | **ĐÃ LÀM** | TC-10 (OWASP A01): `kt1` xem / xem lịch sử / nhận phiếu của `kt2` → 403. |
 | CORS chỉ mở cho nguồn trong biến môi trường | **KHÔNG ÁP DỤNG** | Giao diện và API cùng một nguồn (`http://localhost:3000`, `express.static`), ứng dụng không đăng ký CORS → trình duyệt chặn gọi chéo nguồn theo mặc định. Hướng xử lý nếu tách tên miền: Deployment Guide, Appendix A. |
