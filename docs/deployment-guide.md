@@ -96,7 +96,16 @@ To see each test case with its actual result (used for the Test Report screensho
 
 ---
 
-### Appendix – running without Docker
+### Appendix A – HTTPS in a real deployment
+
+The prototype runs on `localhost` over plain HTTP; it does not terminate TLS itself. For a real deployment:
+
+1. Put the app behind a reverse proxy that holds the TLS certificate and redirects HTTP to HTTPS, e.g. Caddy (`Caddyfile`: `crm.example.com { reverse_proxy app:3000 }`) or Nginx. Only the proxy publishes ports 80/443; the app's port 3000 stays inside the Docker network.
+2. Set `NODE_ENV=production` (already set in the `Dockerfile`) and a `SECRET_KEY` of at least 32 characters in the platform's environment-variable settings – never in the repository or the image.
+3. Login tokens travel only in the `Authorization: Bearer …` header, never in a URL or query string, so they do not end up in proxy logs or browser history. The app sets no cookies, so no `Secure` / `HttpOnly` cookie flags are needed. If cookies are added later, set them `HttpOnly`, `SameSite`, `Secure` when `NODE_ENV=production`, and enable `app.set('trust proxy', 1)` so Express reads `X-Forwarded-Proto` from the proxy.
+4. CORS: the UI and the API are served from the same origin, so the app registers no CORS middleware and browsers block cross-origin calls by default. If the UI is ever hosted on another domain, allow only the origins listed in an environment variable (never `origin: "*"` with credentials).
+
+### Appendix B – running without Docker
 
 Requirements: Node.js **22 LTS**, PostgreSQL **16** with a database and user created, e.g. `CREATE USER smartcrm WITH PASSWORD 'smartcrm'; CREATE DATABASE smartcrm OWNER smartcrm;`.
 
