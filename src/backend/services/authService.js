@@ -5,6 +5,8 @@ const env = require('../config/env');
 const staffRepository = require('../repositories/staffRepository');
 const { invalidInput, notAuthenticated, notAllowed } = require('../errors/AppError');
 
+const JWT_ALGORITHM = 'HS256';
+
 async function login({ username, password } = {}) {
   if (!username || !password) {
     throw invalidInput('CREDENTIALS_REQUIRED', 'Vui lòng nhập tên đăng nhập và mật khẩu');
@@ -15,7 +17,9 @@ async function login({ username, password } = {}) {
   }
   if (!staff.isActive) throw notAllowed('STAFF_INACTIVE', 'Tài khoản đã bị khoá');
 
+  // Payload chỉ có id, vai trò và hạn dùng – không chứa dữ liệu cá nhân (payload JWT ai cũng đọc được).
   const token = jwt.sign({ sub: String(staff.id), role: staff.role }, env.secretKey, {
+    algorithm: JWT_ALGORITHM,
     expiresIn: env.tokenExpiresIn,
   });
   return { token, staff: { id: staff.id, fullName: staff.fullName, role: staff.role } };
@@ -25,7 +29,8 @@ async function login({ username, password } = {}) {
 async function verifyToken(token) {
   let payload;
   try {
-    payload = jwt.verify(token, env.secretKey);
+    // Chỉ định thuật toán, không để thư viện chọn theo header của token (chặn token đổi thuật toán / "none").
+    payload = jwt.verify(token, env.secretKey, { algorithms: [JWT_ALGORITHM] });
   } catch {
     throw notAuthenticated('INVALID_TOKEN', 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn');
   }
