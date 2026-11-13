@@ -15,7 +15,7 @@ The system is a Node.js 22 web application (UI + REST API on one port) with a Po
 | Free port | **3000** on the host (UI + API). The database port is not published to the host, so a local PostgreSQL on 5432 does not conflict |
 | Network | Internet access the first time, to pull the two base images and npm packages |
 
-Running without Docker is also possible (Node.js 22 LTS + PostgreSQL 16); see the appendix at the end.
+Running without Docker is also possible (Node.js 20+ + PostgreSQL 16); see the appendix at the end.
 
 ## 2. Steps to build and run
 
@@ -107,13 +107,13 @@ The prototype runs on `localhost` over plain HTTP; it does not terminate TLS its
 
 ### Appendix B – running without Docker
 
-Requirements: Node.js **22 LTS**, PostgreSQL **16** with a database and user created, e.g. `CREATE USER smartcrm WITH PASSWORD 'smartcrm'; CREATE DATABASE smartcrm OWNER smartcrm;`.
+Requirements: Node.js **20 LTS or later** (tested with 22 LTS), PostgreSQL **16** with a database and user created, e.g. `CREATE USER smartcrm WITH PASSWORD 'smartcrm'; CREATE DATABASE smartcrm OWNER smartcrm;`.
 
 ```bash
 cp .env.example .env        # then edit DB_* to match your PostgreSQL; leave SECRET_KEY empty or set ≥ 32 chars
 npm ci
 npm run migrate
 npm run seed
-npm start                   # or: npm run start:open  (also opens the browser)
+npm start                   # then open http://localhost:3000
 npm test                    # in a second terminal: 49 tests must pass
 ```

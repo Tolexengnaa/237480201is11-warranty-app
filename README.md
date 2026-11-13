@@ -64,7 +64,7 @@ Mỗi bước một lệnh, chạy lần lượt trong terminal. Lệnh `psql` �
 | 6 | Tạo file cấu hình | `cp .env.example .env` (Windows: `copy .env.example .env`) |
 | 7 | Tạo 6 bảng theo DDL BT1 | `npm run migrate` |
 | 8 | Nạp dữ liệu mẫu | `npm run seed` |
-| 9 | Chạy hệ thống (API + giao diện) | `npm start` → mở **http://localhost:3000** (hoặc `npm run start:open` để tự mở trình duyệt) |
+| 9 | Chạy hệ thống (API + giao diện) | `npm start` → mở **http://localhost:3000** |
 | 10 | Chạy toàn bộ kiểm thử (cần bước 7–8) | `npm test` → 49 / 49 pass |
 | 11 | Chỉ chạy unit test (không cần CSDL) | `npm run test:unit` |
 | 12 | Gọi thử toàn bộ API (terminal khác, khi bước 9 đang chạy) | `bash scripts/demo-api.sh` |

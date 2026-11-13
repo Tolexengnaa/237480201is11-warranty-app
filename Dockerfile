@@ -22,5 +22,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=5s --timeout=3s --start-period=20s --retries=10 \
   CMD wget -qO- http://localhost:3000/health || exit 1
 
-# Migration và seed đều chạy lại được nhiều lần không tạo bản ghi trùng (tiêu chí C5).
+# Migration và seed đều chạy lại được nhiều lần không tạo bản ghi trùng (tiêu chí C8).
 CMD ["sh", "-c", "npm run migrate && npm run seed && npm start"]
