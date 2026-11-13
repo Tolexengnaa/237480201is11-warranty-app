@@ -181,3 +181,10 @@ GV xác nhận bảng 4.2 **đạt đủ các mục chung và mục theo track S
 - **Quyết định:** Chưa nạp vào CSDL ở BT3; dữ liệu mẫu của hệ thống vẫn do `npm run seed` tạo, test tự dựng dữ liệu riêng.
 - **Lý do:** Trạng thái trong dataset (`DA_PHAN_CONG`, `DANG_XU_LY`, `CHO_LINH_KIEN`, `HOAN_TAT`, `DA_DONG`) thuộc cả phần sửa chữa sau luồng L2 và không khớp mô hình trạng thái BR6 (`NEW` → `IN_PROGRESS`, `REJECTED`); phiếu tham chiếu `customer_id`, `product_id`, `center_id` không có trong lược đồ BT1. Nạp vào cần một bảng ánh xạ trạng thái – để dành cho Chuyên đề tốt nghiệp 2.
 - **Ảnh hưởng:** Không đổi mã nguồn hay lược đồ.
+
+### TD-23 Hoàn thiện theo tài liệu buổi 15 – 16 (JWT, HTTPS, minh chứng bảo mật)
+
+- **Bối cảnh:** Đối chiếu danh sách tự kiểm track SE (tài liệu tự học buổi 15, mục A6) và checklist nộp bài buổi 16: hàm xác thực token chưa chỉ định thuật toán (thư viện nhận cả HS384, HS512); Deployment Guide chưa có mục HTTPS khi triển khai thật; checklist bảo mật chưa ghi kết quả ba lệnh grep (mục A4).
+- **Quyết định:** `authService.js` ký và xác thực token chỉ với `HS256`; thêm Appendix A "HTTPS in a real deployment" vào Deployment Guide; thêm bảng kết quả ba lệnh grep và bảng tự kiểm track SE vào `docs/checklist-bao-mat.md`. Gắn lại tag `v1.0` vào commit mới nhất.
+- **Lý do:** Không để thư viện chọn thuật toán theo header của token; người triển khai thật biết phải đặt ứng dụng sau proxy có TLS; mỗi mục checklist có minh chứng chạy thật.
+- **Ảnh hưởng:** `src/backend/services/authService.js`, `docs/deployment-guide.md`, `docs/checklist-bao-mat.md`. API, CSDL và 49 test không đổi (49/49 PASS).
