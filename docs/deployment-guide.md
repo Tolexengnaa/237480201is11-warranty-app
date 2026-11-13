@@ -117,3 +117,37 @@ npm run seed
 npm start                   # then open http://localhost:3000
 npm test                    # in a second terminal: 49 tests must pass
 ```
+
+### Appendix C – Trial deployment on Render (free plan)
+
+Public URL: **https://smartcrm-jpge.onrender.com** (deployed 13/11/2026 from branch `main`, the same commit as tag `v1.0`). Health check: `https://smartcrm-jpge.onrender.com/health` → `{"status":"ok","db":"up"}`.
+
+Steps that were actually done (Render dashboard, account linked to GitHub):
+
+1. **New → Postgres**: name `smartcrm-db`, database `smartcrm`, user `smartcrm`, region **Singapore**, instance type **Free** → wait until the status is *Available*.
+2. Open `smartcrm-db` → **Connect** → tab **Internal**. Note the internal hostname (`dpg-…-a`), the password, and the **real database name**: Render appends a random suffix (e.g. `smartcrm_xxxx`), visible at the end of the internal URL. Use the internal hostname: it needs no SSL and the app's PostgreSQL client does not enable SSL.
+3. **New → Web Service** → repository `Tolexengnaa/237480201is11-warranty-app`, branch `main`, language **Docker** (Render builds the existing `Dockerfile`), region **Singapore** (same as the database), instance type **Free**, Health Check Path `/health`.
+4. Environment variables, entered in the Render dashboard only – never in the repository or the image:
+
+| Variable | Value on Render |
+|---|---|
+| `DB_HOST` | internal hostname of `smartcrm-db` |
+| `DB_PORT` | `5432` |
+| `DB_NAME` | real database name from step 2 (with the suffix) |
+| `DB_USER` | `smartcrm` |
+| `DB_PASSWORD` | password from step 2 |
+| `APP_PORT`, `PORT` | `3000` |
+| `SECRET_KEY` | new random value, 64 hex characters (`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`) |
+| `TOKEN_EXPIRES_IN` | `8h` |
+
+5. **Deploy Web Service**. The container runs `migrate` → `seed` → `start` as in section 2. Expected log: `đã chạy 001_init_schema.sql`, `seed xong: { issue_category: 7, staff: 5, customer: 3, device: 3 }`; the service status becomes **Live**.
+6. Verify: open `/health` (expected above), then log in as `tn1` / `Matkhau@123` and run check 7 of section 5.
+
+Problems met and fixed during this deployment:
+
+| Log message | Cause | Fix |
+|---|---|---|
+| `Migration lỗi:` (empty message) | No database existed yet and `DB_HOST` was not set, so the app fell back to `localhost` | Create the Postgres service first, then set `DB_HOST` to its internal hostname |
+| `Migration lỗi: database "smartcrm" does not exist` | Render added a suffix to the database name | Set `DB_NAME` to the real name shown in the internal URL |
+
+Limits of the free plan: the web service sleeps after 15 minutes without traffic and needs about one minute to wake up (open the URL before a demo); the free database expires 30 days after creation. The sample accounts and their shared password are public in this repository – acceptable only because the deployed data is sample data.
