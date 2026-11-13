@@ -210,7 +210,8 @@ Kế hoạch và kết quả kiểm thử: `docs/test-plan.md`, `docs/test-repor
 |---|---|---|---|
 | 1 | sau commit thêm 12 test case, chưa sửa bug | 45 / 48 – FAIL TC-08, TC-09, TC-11 | ba lỗi thật → BUG-04, BUG-05, BUG-06 |
 | 2 | sau ba commit `fix(…)` | 48 / 48 | |
-| 3 | sau commit bổ sung của BUG-04 | **49 / 49** | bản `v1.0` |
+| 3 | sau commit bổ sung của BUG-04 | **49 / 49** | |
+| 4 | sau commit `fix(security)` JWT chỉ nhận HS256 (BUG-07) | **49 / 49** | bản `v1.0` |
 
 **Minh chứng**
 
@@ -234,10 +235,10 @@ Kế hoạch và kết quả kiểm thử: `docs/test-plan.md`, `docs/test-repor
 - [x] Tách `src/backend` và `src/frontend` (TD-15)
 - [x] Đóng gói Docker: lên bằng một lệnh `docker compose up -d --build`, cả hai dịch vụ có healthcheck, dữ liệu mẫu tự nạp
 - [x] Test Plan + Test Report 12 test case chạy thật (5 loại), `npm test` 49 / 49 bằng một lệnh
-- [x] `docs/bug-log.md`: BUG-04, BUG-05 (Major), BUG-06 (Critical) phát hiện bằng test case, mỗi lỗi một commit sửa riêng; BUG-01 → BUG-03 từ BT2
-- [x] Deployment Guide và API docs tiếng Anh; checklist bảo mật 7 mục có minh chứng
+- [x] `docs/bug-log.md`: BUG-04, BUG-05 (Major), BUG-06 (Critical) phát hiện bằng test case, BUG-07 (Minor) phát hiện khi tự kiểm bảo mật track SE; mỗi lỗi một commit sửa riêng; BUG-01 → BUG-03 từ BT2
+- [x] Deployment Guide và API docs tiếng Anh (Deployment Guide có mục bật HTTPS khi triển khai thật); checklist bảo mật 7 mục có minh chứng, kèm kết quả ba lệnh grep
 - [ ] Chưa đo NFR1 (≤ 2 giây p95 với 10.000 phiếu) – ngoài phạm vi BT3 (xem Test Plan mục 1)
-- [ ] Chưa giới hạn số lần đăng nhập sai, chưa có HTTPS – xem `docs/checklist-bao-mat.md`
+- [ ] Chưa giới hạn số lần đăng nhập sai; chưa cài HTTPS cho prototype chạy ở localhost (cách làm khi triển khai thật: Deployment Guide, Appendix A) – xem `docs/checklist-bao-mat.md`
 
 Lưu ý: không có endpoint `PUT`/`DELETE` cho phiếu bảo hành vì BR6 (phiếu không bao giờ bị xoá). Các thay đổi so với thiết kế ban đầu và lý do: `docs/thay-doi-thiet-ke.md`.
 
@@ -271,4 +272,5 @@ Lưu ý: không có endpoint `PUT`/`DELETE` cho phiếu bảo hành vì BR6 (phi
 | 1.1 | 19/10/2026 | Buổi 8 – Sprint 1: khung mã nguồn, migration, CRUD phiếu bảo hành |
 | 1.2 | 23/10/2026 | Buổi 10 – Sprint 2: T4–T8, giao diện M1/M2/M3, luồng chính end-to-end |
 | 1.3 | 30/10/2026 | Buổi 12 – Bài tập 2 (`v0.2`): tách lớp nghiệp vụ khỏi HTTP, CRUD khách hàng/thiết bị, giao diện mới, mã 503, Docker |
-| 1.4 | 11/2026 | Bài tập 3 (`v1.0`): kiểm thử 12 test case, sửa BUG-04 → BUG-06, đóng gói Docker có healthcheck, tài liệu tiếng Anh, checklist bảo mật |
+| 1.4 | 07/11/2026 | Bài tập 3: kiểm thử 12 test case, sửa BUG-04 → BUG-06, đóng gói Docker có healthcheck, tài liệu tiếng Anh, checklist bảo mật |
+| 1.5 | 13/11/2026 | Bài tập 3 (`v1.0`): hoàn thiện theo buổi 15–16 – JWT chỉ nhận HS256 (BUG-07), mục HTTPS trong Deployment Guide, minh chứng ba lệnh grep (TD-23) |
