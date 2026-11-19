@@ -2,6 +2,8 @@
 
 **Repo:** https://github.com/Tolexengnaa/237480201is11-warranty-app · **Phiên bản nộp Bài tập 3:** `v1.0` (Bài tập 2: `v0.2`)
 
+**Deploy thử:** https://smartcrm-jpge.onrender.com – gói miễn phí của Render: lần mở đầu sau 15 phút không dùng phải chờ khoảng 1 phút; đăng nhập `tn1` / `Matkhau@123` (tài khoản mẫu, dữ liệu mẫu). Các bước deploy: `docs/deployment-guide.md`, Appendix C.
+
 Đồ án học phần **Chuyên đề tốt nghiệp 1** – Trường Đại học Văn Lang, Khoa Công nghệ Thông tin – Học kỳ 1, năm học 2026 – 2027.
 
 ---

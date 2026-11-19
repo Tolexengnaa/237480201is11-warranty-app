@@ -15,7 +15,7 @@
 | **Ngày nộp** | 19/10/2026 |
 | **GitHub repo** | https://github.com/Tolexengnaa/237480201is11-warranty-app |
 
-> File này là nguồn Markdown của file PDF nộp (`BT1_237480201is11_MingbouphaXaykham.pdf`). Sơ đồ gốc nằm cùng thư mục `docs/` (`*.drawio`); ảnh xuất nằm trong `docs/export/`; DDL nằm ở `db/schema.sql`.
+> File này là nguồn Markdown của file PDF nộp (`BT1_237480201is11_MingbouphaXaykham.pdf`). Sơ đồ gốc use case, kiến trúc và ERD nằm trong `docs/` (`usecase.drawio`, `architecture.drawio`, `erd.drawio`); wireframe có trong repo dưới dạng ảnh `docs/wireframe.png`; DDL nằm ở `db/schema.sql`.
 
 ---
 
@@ -309,11 +309,11 @@ CREATE INDEX idx_log_ticket_time ON ticket_status_log (ticket_id, changed_at);
 
 ## MỤC 5 – WIREFRAME 3 MÀN HÌNH
 
-**File gốc:** `docs/wireframe.drawio`
+**Ảnh:** `docs/wireframe.png`. Tệp gốc `wireframe.drawio` chưa được đưa vào repo (ghi nhận ở TD-24 trong `docs/thay-doi-thiet-ke.md`).
 
 ![Wireframe 3 màn hình – Luồng L2](wireframe.png)
 
-**M1 Tạo phiếu bảo hành** – UC01, UC07 · **M2 Danh sách phiếu bảo hành** – UC04 · **M3 Chi tiết phiếu bảo hành** – UC02, UC03, UC05, UC06. Mọi trường hiển thị đều có trong ERD (bảng đối chiếu chi tiết: `docs/wireframe.md`); mỗi luồng ngoại lệ có chỗ hiển thị thông báo, ghi mã bước trong ngoặc.
+**M1 Tạo phiếu bảo hành** – UC01, UC07 · **M2 Danh sách phiếu bảo hành** – UC04 · **M3 Chi tiết phiếu bảo hành** – UC02, UC03, UC05, UC06. Mọi trường hiển thị đều có trong ERD; mỗi luồng ngoại lệ có chỗ hiển thị thông báo, ghi mã bước trong ngoặc.
 
 ---
 
@@ -327,7 +327,7 @@ CREATE INDEX idx_log_ticket_time ON ticket_status_log (ticket_id, changed_at);
 | Claude (Anthropic) – trợ lý AI dạng chat | Mục 2 – Use Case Diagram (`usecase.drawio`) và đặc tả chi tiết **UC01 – Tạo phiếu bảo hành** | Yêu cầu vẽ sơ đồ use case dạng file draw.io gốc và đặc tả use case chính có luồng ngoại lệ | Em chọn đưa thao tác *Từ chối* vào UC02 (chỉ từ trạng thái *Mới*) và sửa BR6, FR2, US2 cho khớp. Mở `usecase.drawio` kiểm: 3 actor nằm ngoài ranh giới hệ thống, 7 use case đặt tên bằng động từ, có quan hệ «include» UC01 → UC07, có chú thích ký hiệu. Kiểm 7 luồng ngoại lệ của UC01 (2a, 3a, 4a, 5a, 5b, 5c, 7a) đều có thông báo trên wireframe M1 |
 | Claude (Anthropic) – trợ lý AI dạng chat | Mục 3 – sơ đồ kiến trúc (`architecture.drawio`) và 4 câu lập luận | Yêu cầu thiết kế kiến trúc phân lớp cho luồng L2 và viết câu lập luận theo khuôn "Vì NFR… yêu cầu…, tôi chọn…, đánh đổi là…" | Kiểm từng câu lập luận có đủ mã NFR, ngưỡng số, quyết định và đánh đổi. Kiểm mũi tên giữa các lớp chỉ đi xuống và có ghi cách trao đổi; tên 6 bảng ở lớp lưu trữ khớp ERD; đường dẫn API trên Controller khớp `api-contract.md` |
 | Claude (Anthropic) – trợ lý AI dạng chat | Mục 4 – ERD (`erd.drawio`) và `db/schema.sql` | Yêu cầu thiết kế ERD 4–6 bảng và SQL DDL skeleton cho PostgreSQL 16 | Chạy `schema.sql` trên PostgreSQL 16: tạo đủ 6 bảng, 7 khoá ngoại, không lỗi. Thử chèn dữ liệu sai – phiếu thứ hai cho cùng IMEI (BR2), *Từ chối* không có lý do, phiếu *Đã phân công* không có kỹ thuật viên – đều bị CSDL chặn. Soi ERD theo năm lỗi ở slide buổi 6: không có bảng cô lập; có bảng lịch sử `ticket_status_log`; không lưu giá trị tính được (*Hết hạn bảo hành*, *Quá hạn*); có index cho truy vấn danh sách; khoá chính là `id` thay vì khoá nghiệp vụ (mã phiếu, IMEI, số điện thoại để UNIQUE) |
-| Claude (Anthropic) – trợ lý AI dạng chat | Mục 5 – Wireframe 3 màn hình (`wireframe.drawio`) | Yêu cầu vẽ M1, M2, M3 khớp thuật ngữ, khớp mô hình dữ liệu và có chỗ hiển thị cho mọi luồng ngoại lệ | Đối chiếu từng trường trên M1–M3 với cột trong ERD (nhãn *Hết hạn bảo hành* và *Quá hạn* là giá trị tính toán, không lưu). Kiểm M3 có đủ khu vực cho UC02, UC03, UC05, UC06 và nút bị khoá đúng theo trạng thái phiếu |
+| Claude (Anthropic) – trợ lý AI dạng chat | Mục 5 – Wireframe 3 màn hình (ảnh `docs/wireframe.png`) | Yêu cầu vẽ M1, M2, M3 khớp thuật ngữ, khớp mô hình dữ liệu và có chỗ hiển thị cho mọi luồng ngoại lệ | Đối chiếu từng trường trên M1–M3 với cột trong ERD (nhãn *Hết hạn bảo hành* và *Quá hạn* là giá trị tính toán, không lưu). Kiểm M3 có đủ khu vực cho UC02, UC03, UC05, UC06 và nút bị khoá đúng theo trạng thái phiếu |
 | Claude (Anthropic) – trợ lý AI dạng chat | Trình bày hồ sơ: file Word, `docs/srs.md`, `README.md`, `api-contract.md`, `.gitignore`, `.env.example` | Chuyển nội dung sang file Word, rút gọn theo mục 3.1 của đề, gộp vào `srs.md`, tạo các file còn thiếu của repo | Em tự chèn hình, điền thông tin cá nhân, xuất PDF và đặt tên file theo mẫu. Mở lại PDF kiểm: đủ 5 mục và phụ lục, hình đọc rõ, có link GitHub ở trang bìa và cuối bài, không còn chữ mẫu trong ngoặc nhọn. Kiểm `.env.example` không chứa mật khẩu thật |
 | — không dùng — | Chọn luồng nghiệp vụ L2 và track SE (giảng viên duyệt ở buổi 2); đối chiếu quy tắc với Bảng 9.1 của case study; điền thông tin cá nhân; chèn hình và xuất PDF; tạo repo GitHub và commit | Không áp dụng | Không áp dụng |
 

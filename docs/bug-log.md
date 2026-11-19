@@ -2,7 +2,7 @@
 
 Luồng L2 – Tiếp nhận và phân loại yêu cầu bảo hành · Track SE · Sinh viên: MINGBOUPPHA XAYKHAM – 237480201is11 – 261_71ITGR40203_03
 
-Mỗi lỗi ghi đủ **bảy dòng**: mã và mức độ · phát hiện bởi · triệu chứng · cách tái lập · nguyên nhân · cách sửa · commit và xác nhận. Gỡ theo bốn bước của buổi 11: **tái lập → khoanh vùng → sửa nguyên nhân → xác nhận**. Mỗi lỗi sửa trong **một commit riêng** kèm test chứng minh.
+Mỗi lỗi ghi đủ **bảy dòng**: mã và mức độ · phát hiện bởi · triệu chứng · cách tái lập · nguyên nhân · cách sửa · commit và xác nhận. Gỡ theo bốn bước của buổi 11: **tái lập → khoanh vùng → sửa nguyên nhân → xác nhận**. Mỗi lỗi sửa trong **một commit riêng**; BUG-04 → BUG-06 kèm test chứng minh, BUG-07 xác nhận bằng lệnh ở dòng 4 và 7.
 
 Mức độ theo đề BT3 mục 2.3: **Critical** – hệ thống không dùng được, dữ liệu sai hoặc có lỗ hổng bảo mật · **Major** – chức năng quan trọng sai nhưng có cách làm khác · **Minor** – ảnh hưởng trải nghiệm, nghiệp vụ vẫn đúng.
 

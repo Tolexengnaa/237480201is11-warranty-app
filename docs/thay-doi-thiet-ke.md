@@ -188,3 +188,16 @@ GV xác nhận bảng 4.2 **đạt đủ các mục chung và mục theo track S
 - **Quyết định:** `authService.js` ký và xác thực token chỉ với `HS256`; thêm Appendix A "HTTPS in a real deployment" vào Deployment Guide; thêm bảng kết quả ba lệnh grep và bảng tự kiểm track SE vào `docs/checklist-bao-mat.md`. Gắn lại tag `v1.0` vào commit mới nhất.
 - **Lý do:** Không để thư viện chọn thuật toán theo header của token; người triển khai thật biết phải đặt ứng dụng sau proxy có TLS; mỗi mục checklist có minh chứng chạy thật.
 - **Ảnh hưởng:** `src/backend/services/authService.js`, `docs/deployment-guide.md`, `docs/checklist-bao-mat.md`. API, CSDL và 49 test không đổi (49/49 PASS).
+
+---
+
+## Sau khi nộp Bài tập 3 (buổi 18, ngày 19/11/2026)
+
+Các thay đổi dưới đây nằm trên nhánh `main`, SAU tag `v1.0`. Tag `v1.0` (bản đã nộp BT3) giữ nguyên.
+
+### TD-24 Đồng bộ tài liệu với repo sau khi rà soát
+
+- **Bối cảnh:** Rà repo theo checklist buổi 16 và việc tự học sau buổi 18 (repo là hồ sơ sản phẩm). Phát hiện: (1) TC-12 trong Test Report ghi 8 khách / 8 thiết bị vì CSDL trên máy em còn dữ liệu cũ, trong khi CSDL trống chỉ có 3 / 3; (2) `docs/srs.md` và `docs/ai-disclosure.md` nhắc tới `docs/wireframe.drawio`, `docs/wireframe.md`, `docs/export/` – ba thứ này chưa từng được commit; (3) README chưa có link bản deploy thử; (4) phần mở đầu Bug Log ghi mọi lỗi đều kèm test, nhưng BUG-07 chỉ xác nhận bằng lệnh.
+- **Quyết định:** Chạy lại toàn bộ test trên CSDL trống và ghi lần chạy 4 vào Test Report, giữ nguyên kết quả 07/11 và ghi rõ vì sao số khác; sửa `docs/srs.md`, `docs/ai-disclosure.md` cho khớp với tệp thật có trong repo; thêm link deploy vào đầu README; sửa câu mở đầu Bug Log cho đúng.
+- **Lý do:** Tài liệu phải mô tả đúng thứ có trong repo (tiêu chí C9); kết quả thực tế phải chạy lại được trên máy khác.
+- **Ảnh hưởng:** chỉ tài liệu: `README.md`, `docs/test-report.md`, `docs/srs.md`, `docs/ai-disclosure.md`, `docs/bug-log.md`, log mới `docs/ket-qua/bt3/lan-4-csdl-trong-19-11.txt`. Không đổi mã nguồn, API, CSDL; 49/49 test vẫn PASS.
